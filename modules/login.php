@@ -13,17 +13,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = trim($_POST['usuario']);
     $password = trim($_POST['password']);
     
-    // --- CORRECCIÓN REALIZADA AQUÍ ---
-    // Usamos :usuario como marcador de posición en lugar de 'BGITAL'
     $stmt = $db->prepare("SELECT id, usuario, password, nombre_completo FROM usuarios WHERE usuario = :usuario AND activo = 1");
-    
-    // Vinculamos el dato real del formulario a la consulta
     $stmt->bindParam(":usuario", $usuario);
     $stmt->execute();
     
     if ($stmt->rowCount() > 0) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        // Verificamos el hash de la contraseña
         if (password_verify($password, $row['password'])) {
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['usuario'] = $row['usuario'];
@@ -32,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
         }
     }
-    // Si el usuario no existe o la contraseña no coincide
     $error = "Credenciales incorrectas";
 }
 ?>
@@ -40,6 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | BDIGITAL</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/login.css">
@@ -48,28 +43,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <body>
     <div class="login-bg">
         <div class="login-card">
-            <img src="../assets/img/logo.png" alt="Logo" class="login-logo" onerror="this.style.display='none'">
-            <h2 class="login-title">Acceso Seguro</h2>
+            <div class="login-logo-container">
+                <?php if(file_exists('../assets/img/logo.png')): ?>
+                    <img src="../assets/img/logo.png" alt="Logo BDIGITAL" class="login-logo">
+                <?php else: ?>
+                    <div class="login-logo-placeholder">
+                        <i class="fas fa-network-wired"></i>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <h2 class="login-title">BDIGITAL</h2>
+            <p class="login-subtitle">Sistema de Ventas</p>
             
             <?php if(isset($error)): ?>
-                <div style="background: #ffdce0; color: #c0392b; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
                     <?php echo $error; ?>
                 </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" class="login-form">
                 <div class="form-group">
                     <label class="form-label">Usuario</label>
-                    <input type="text" name="usuario" class="form-control" required autofocus>
+                    <div style="position: relative;">
+                        <input type="text" name="usuario" class="form-control" required autofocus>
+                        <i class="fas fa-user input-icon"></i>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Contraseña</label>
-                    <input type="password" name="password" class="form-control" required>
+                    <div style="position: relative;">
+                        <input type="password" name="password" class="form-control" required>
+                        <i class="fas fa-lock input-icon"></i>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
-                    Ingresar <i class="fas fa-arrow-right"></i>
+                <button type="submit" class="btn btn-primary login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Ingresar al Sistema
                 </button>
             </form>
+            
+            <div class="login-footer">
+                <p>&copy; 2024 BDIGITAL Telecomunicaciones. Todos los derechos reservados.</p>
+            </div>
         </div>
     </div>
 </body>
