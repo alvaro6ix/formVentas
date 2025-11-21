@@ -1,0 +1,45 @@
+/* assets/css/style.css */
+:root {
+    --primary-dark: #050A30;
+    --primary: #000C66;
+    --accent: #00D4FF; /* Cian futurista */
+    --accent-hover: #00a3cc;
+    --text-main: #333;
+    --text-light: #f4f6f9;
+    --bg-body: #F0F2F5;
+    --glass: rgba(255, 255, 255, 0.95);
+    --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
+    --radius: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+body { background-color: var(--bg-body); color: var(--text-main); }
+
+/* Inputs Modernos */
+.form-group { margin-bottom: 1.2rem; position: relative; }
+.form-label { display: block; font-weight: 600; margin-bottom: 5px; color: var(--primary); font-size: 0.9rem; }
+.form-control {
+    width: 100%; padding: 12px; border: 2px solid #e1e5ee; border-radius: var(--radius);
+    transition: all 0.3s ease; background: #fff; font-size: 0.95rem;
+}
+.form-control:focus {
+    border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.1); outline: none;
+}
+
+/* Botones */
+.btn {
+    padding: 12px 25px; border: none; border-radius: var(--radius); cursor: pointer;
+    font-weight: 600; transition: transform 0.2s, box-shadow 0.2s; display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+}
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white; box-shadow: 0 4px 15px rgba(0, 12, 102, 0.3);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 12, 102, 0.4); }
+
+/* Utilidades */
+.text-center { text-align: center; }
+.d-none { display: none; }
+.card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }

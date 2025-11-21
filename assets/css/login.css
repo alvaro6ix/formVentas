@@ -1,0 +1,13 @@
+/* assets/css/login.css */
+.login-bg {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+    position: relative; overflow: hidden;
+}
+.login-card {
+    background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+    padding: 3rem; border-radius: 20px; width: 100%; max-width: 420px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); border-top: 5px solid var(--accent);
+}
+.login-logo { width: 80px; height: 80px; background: #ddd; border-radius: 50%; margin: 0 auto 20px; display: block; object-fit: cover;}
+.login-title { color: var(--primary-dark); font-size: 1.8rem; margin-bottom: 1.5rem; text-align: center; font-weight: 700; }
