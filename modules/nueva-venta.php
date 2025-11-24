@@ -187,10 +187,40 @@
         </div>
 
         <div class="form-group">
-            <label class="form-label">Materiales Utilizados</label>
-            <textarea name="materiales_utilizados" class="form-control" rows="3" placeholder='Ej: {"cable": "10m", "conectores": "2"}'></textarea>
-            <small style="color: var(--text-muted);">Formato JSON: {"material": "cantidad"}</small>
+    <label class="form-label">Materiales Utilizados</label>
+    
+    <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
+        <div style="flex: 2;">
+            <select id="selMaterial" class="form-control">
+                <option value="">Seleccione material...</option>
+                <option value="Cable Fibra Óptica (m)">Cable Fibra Óptica (mts)</option>
+                <option value="Cable UTP (m)">Cable UTP (mts)</option>
+                <option value="Conectores RJ45">Conectores RJ45</option>
+                <option value="Conectores Mecánicos">Conectores Mecánicos</option>
+                <option value="Tensores">Tensores</option>
+                <option value="Grapas">Grapas</option>
+                <option value="Roseta Óptica">Roseta Óptica</option>
+                <option value="Patch Cord">Patch Cord</option>
+                <option value="Fleje">Fleje</option>
+                <option value="Hebillas">Hebillas</option>
+            </select>
         </div>
+        <div style="flex: 1;">
+            <input type="number" id="cantMaterial" class="form-control" placeholder="Cant." min="1">
+        </div>
+        <button type="button" id="btnAgregarMaterial" class="btn btn-primary" style="height: 42px;">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <div id="listaMateriales" style="background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 5px; min-height: 50px;">
+        <p style="color: #999; text-align: center; margin: 0; font-size: 0.9em;" id="msgVacio">
+            No hay materiales agregados
+        </p>
+        </div>
+
+    <input type="hidden" name="materiales_utilizados" id="inputMaterialesJSON">
+</div>
 
         <div class="form-group">
             <label class="form-label">Notas de Instalación</label>
@@ -259,24 +289,114 @@
     </form>
 </div>
 
-<script src="../assets/js/cp-autocomplete.js"></script>
+<script src="../assets/js/cp-autocomplete.js?v=5000"></script>
 <script>
+// ==========================================
+// 1. LÓGICA DE MATERIALES (Nueva)
+// ==========================================
+const materialesList = [];
+const selMaterial = document.getElementById('selMaterial');
+const cantMaterial = document.getElementById('cantMaterial');
+const listaVisual = document.getElementById('listaMateriales');
+const inputHidden = document.getElementById('inputMaterialesJSON');
+const msgVacio = document.getElementById('msgVacio');
+
+// Botón Agregar Material
+const btnAgregar = document.getElementById('btnAgregarMaterial');
+if(btnAgregar){
+    btnAgregar.addEventListener('click', function() {
+        const material = selMaterial.value;
+        const cantidad = cantMaterial.value;
+
+        if (!material || !cantidad || cantidad <= 0) {
+            Swal.fire('Atención', 'Seleccione un material y una cantidad válida', 'warning');
+            return;
+        }
+
+        // Agregar al array
+        materialesList.push({ material: material, cantidad: cantidad });
+
+        // Actualizar vista y input oculto
+        actualizarListaMateriales();
+        
+        // Limpiar campos
+        selMaterial.value = "";
+        cantMaterial.value = "";
+        cantMaterial.focus();
+    });
+}
+
+function actualizarListaMateriales() {
+    // Limpiar lista visual
+    listaVisual.innerHTML = '';
+
+    if (materialesList.length === 0) {
+        listaVisual.appendChild(msgVacio);
+        msgVacio.style.display = 'block';
+    } else {
+        msgVacio.style.display = 'none'; // Aseguramos ocultar el mensaje
+        
+        // Renderizar items
+        materialesList.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
+            div.innerHTML = `
+                <span style="font-size: 0.95rem;">
+                    <i class="fas fa-tools" style="color: var(--accent); margin-right: 8px;"></i>
+                    <strong>${item.material}</strong>: ${item.cantidad}
+                </span>
+                <button type="button" onclick="eliminarMaterial(${index})" style="background: none; border: none; color: #dc3545; cursor: pointer; padding: 5px;">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            `;
+            listaVisual.appendChild(div);
+        });
+    }
+
+    // Actualizar el INPUT HIDDEN con el JSON String
+    inputHidden.value = JSON.stringify(materialesList);
+}
+
+// Función global para eliminar (necesaria para el onclick inline)
+window.eliminarMaterial = function(index) {
+    materialesList.splice(index, 1);
+    actualizarListaMateriales();
+};
+
+// ==========================================
+// 2. LÓGICA DE FORMULARIO (Existente)
+// ==========================================
+
 // Mostrar/ocultar campo "otro tipo de vivienda"
-document.querySelector('select[name="tipo_vivienda"]').addEventListener('change', function() {
-    const otroDiv = document.getElementById('otroTipoVivienda');
-    otroDiv.style.display = this.value === 'otro' ? 'block' : 'none';
-});
+const selectVivienda = document.querySelector('select[name="tipo_vivienda"]');
+if(selectVivienda){
+    selectVivienda.addEventListener('change', function() {
+        const otroDiv = document.getElementById('otroTipoVivienda');
+        otroDiv.style.display = this.value === 'otro' ? 'block' : 'none';
+    });
+}
 
 // Mostrar/ocultar campo "número de identificación"
-document.getElementById('tipoIdentificacion').addEventListener('change', function() {
-    const numeroGroup = document.getElementById('numeroIdentificacionGroup');
-    numeroGroup.style.display = this.value ? 'block' : 'none';
-});
+const selectIdent = document.getElementById('tipoIdentificacion');
+if(selectIdent){
+    selectIdent.addEventListener('change', function() {
+        const numeroGroup = document.getElementById('numeroIdentificacionGroup');
+        numeroGroup.style.display = this.value ? 'block' : 'none';
+    });
+}
 
-// Manejo del envío del formulario con fetch
+// ==========================================
+// 3. ENVÍO DEL FORMULARIO (Fetch)
+// ==========================================
 document.getElementById('formVenta').addEventListener('submit', function(e) {
     e.preventDefault();
+    
     const formData = new FormData(this);
+
+    // Validación extra: Si hay materiales seleccionados pero el input hidden está vacío (caso raro)
+    if(materialesList.length > 0 && inputHidden.value === "") {
+        inputHidden.value = JSON.stringify(materialesList);
+    }
 
     Swal.fire({
         title: 'Procesando...',
@@ -308,7 +428,7 @@ document.getElementById('formVenta').addEventListener('submit', function(e) {
                 }
             });
         } else {
-            Swal.fire('Error', data.message, 'error');
+            Swal.fire('Error', data.message || 'Error desconocido', 'error');
         }
     })
     .catch(err => {
