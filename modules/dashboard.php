@@ -23,7 +23,7 @@ $ventasMes = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 <div class="card" style="background: var(--gradient-primary); color: white;">
     <h1>Bienvenido, <?php echo $_SESSION['nombre']; ?> 👋</h1>
-    <p>Panel de control del sistema de ventas BDIGITAL</p>
+    <p>Panel de control del sistema de ventas BGITAL</p>
 </div>
 
 <div class="stats-grid">
