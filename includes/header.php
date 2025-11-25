@@ -9,30 +9,13 @@ $rol_usuario = $_SESSION['rol_id'] ?? 0;
 $nombre_usuario = $_SESSION['usuario'] ?? 'Usuario';
 
 // --- LÓGICA DE NOMBRES DE ROLES ---
-// Aquí definimos qué texto mostrar según el ID
 $nombre_rol = 'Usuario';
-
-// Asegúrate que estos IDs coincidan con tu tabla 'roles' en la base de datos
 switch($rol_usuario) {
-    case 1: 
-    case 'admin':
-        $nombre_rol = 'Administrador'; 
-        break;
-    case 2: 
-    case 'ventas':
-        $nombre_rol = 'Ventas'; 
-        break;
-    case 3: 
-    case 'despacho':
-        $nombre_rol = 'Despacho'; 
-        break;
-    case 4: 
-    case 'tecnico':
-        $nombre_rol = 'Técnico'; 
-        break;
-    default:
-        $nombre_rol = 'Vendedor'; // Por defecto si no coincide
-        break;
+    case 1: $nombre_rol = 'Administrador'; break;
+    case 2: $nombre_rol = 'Ventas'; break;
+    case 3: $nombre_rol = 'Despacho'; break;
+    case 4: $nombre_rol = 'Técnico'; break;
+    default: $nombre_rol = 'Invitado'; break;
 }
 
 // 3. LÓGICA DE RUTAS DINÁMICAS
@@ -48,14 +31,13 @@ if ($en_carpeta_admin) {
     $ruta_admin   = 'admin/';
 }
 
-// 4. DEFINIR AVATAR
-$avatar_db = $_SESSION['avatar'] ?? 'assets/img/avatar/OIP.webp';
-$avatar_final = $ruta_assets . str_replace('../', '', basename($avatar_db) == $avatar_db ? 'assets/img/avatars/'.$avatar_db : $avatar_db);
+// 4. AVATAR
+$avatar_db = $_SESSION['avatar'] ?? 'assets/img/avatar/default.png';
+$avatar_name = basename($avatar_db);
+$avatar_final = $ruta_assets . 'assets/img/avatars/' . $avatar_name;
 
-// Corrección extra para rutas limpias
-if(strpos($avatar_final, 'assets/img/avatars/') === false && strpos($avatar_final, 'assets/img/avatar/') === false){
-     $avatar_final = $ruta_assets . 'assets/img/avatars/default.png';
-}
+// Fallback por si la imagen no carga
+$avatar_error = $ruta_assets . 'assets/img/avatars/default.png';
 ?>
 
 <!DOCTYPE html>
@@ -63,15 +45,23 @@ if(strpos($avatar_final, 'assets/img/avatars/') === false && strpos($avatar_fina
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BGITAL - Sistema de Ventas</title>
+    <title>BGITAL - <?php echo $nombre_rol; ?></title>
     
     <link rel="stylesheet" href="<?php echo $ruta_assets; ?>assets/css/style.css">
-    <link rel="stylesheet" href="<?php echo $ruta_assets; ?>assets/css/dashboard.css">
+    <link rel="stylesheet" href="<?php echo $ruta_assets; ?>assets/css/dashboard.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        /* Ajustes visuales del menú */
+        .menu-section-label {
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 15px 20px 5px;
+            letter-spacing: 1px;
+        }
         .user-info-container {
             padding: 15px;
             display: flex;
@@ -82,69 +72,70 @@ if(strpos($avatar_final, 'assets/img/avatars/') === false && strpos($avatar_fina
             border-top: 1px solid rgba(255,255,255,0.1);
         }
         .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
             border: 2px solid rgba(255,255,255,0.2);
         }
-        .admin-separator {
-            color: #adb5bd;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 15px 20px 5px;
-            font-weight: bold;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            margin-top: 10px;
-        }
         .nav-link.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid #fff;
+            background: linear-gradient(90deg, rgba(37, 99, 235, 0.15) 0%, transparent 100%);
+            border-left: 4px solid #3b82f6;
+            color: white;
         }
     </style>
 </head>
 <body>
     <div class="main-layout">
         <nav class="sidebar">
-           <div class="sidebar-brand" style="padding: 15px; text-align: center;">
-    <div style="background: rgba(202, 216, 215, 0.95); padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-        <img src="<?php echo $ruta_assets; ?>assets/img-logo/bgital_logo_moderno.png" 
-             alt="BGITAL" 
-             style="width: 100%; height: auto; max-height:60px; object-fit: contain; display: block;">
-    </div>
-</div>
+            <div class="sidebar-brand" style="padding: 15px; text-align: center;">
+                <div style="background: rgba(255, 255, 255, 0.95); padding: 8px; border-radius: 8px;">
+                    <img src="<?php echo $ruta_assets; ?>assets/img-logo/bgital_logo_moderno.png" 
+                         alt="BGITAL" style="width: 100%; max-height: 45px; object-fit: contain;">
+                </div>
+            </div>
 
-            <a href="<?php echo $ruta_modules; ?>dashboard.php" 
-               class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
-                <i class="fas fa-home"></i> Dashboard
-            </a>
-            
-            <a href="<?php echo $ruta_modules; ?>nueva-venta.php" 
-               class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'nueva-venta.php' ? 'active' : ''; ?>">
-                <i class="fas fa-file-contract"></i> Nueva Venta
-            </a>
-            
-            <a href="<?php echo $ruta_modules; ?>ver-ventas.php" 
-               class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'ver-ventas.php' ? 'active' : ''; ?>">
-                <i class="fas fa-history"></i> Historial
+            <div class="menu-section-label">Principal</div>
+            <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
             </a>
 
-            <?php if($rol_usuario == 1 || $rol_usuario == 'admin'): ?>
-                <div class="admin-separator">Administración</div>
-                
-                <a href="<?php echo $ruta_admin; ?>gestionar-usuarios.php" 
-                   class="nav-link <?php echo basename($_SERVER['PHP_SELF']) == 'gestionar-usuarios.php' ? 'active' : ''; ?>">
-                    <i class="fas fa-users-cog"></i> Usuarios
-                </a>
-            <?php endif; ?>
+            <?php switch($rol_usuario): 
+                case 1: // ADMIN ?>
+                    <div class="menu-section-label text-warning">Administración</div>
+                    <a href="<?php echo $ruta_admin; ?>gestionar-usuarios.php" class="nav-link"><i class="fas fa-users-cog"></i> Usuarios</a>
+                    <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link"><i class="fas fa-list-alt"></i> Todas las Ventas</a>
+                    <a href="#" class="nav-link"><i class="fas fa-chart-pie"></i> Reportes</a>
+                    <a href="#" class="nav-link"><i class="fas fa-cogs"></i> Configuración</a>
+                    <a href="#" class="nav-link"><i class="fas fa-shield-alt"></i> Logs</a>
+                <?php break; ?>
+
+                <?php case 2: // VENTAS ?>
+                    <div class="menu-section-label text-info">Ventas</div>
+                    <a href="<?php echo $ruta_modules; ?>nueva-venta.php" class="nav-link"><i class="fas fa-plus-circle"></i> Nueva Venta</a>
+                    <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Mis Ventas</a>
+                    <a href="#" class="nav-link"><i class="fas fa-users"></i> Clientes</a>
+                    <a href="#" class="nav-link"><i class="fas fa-clipboard-list"></i> Mis Reportes</a>
+                <?php break; ?>
+
+                <?php case 3: // DESPACHO ?>
+                    <div class="menu-section-label text-success">Logística</div>
+                    <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link"><i class="fas fa-bell"></i> Órdenes Pendientes</a>
+                    <a href="#" class="nav-link"><i class="fas fa-map-marked-alt"></i> Asignar Técnicos</a>
+                    <a href="#" class="nav-link"><i class="fas fa-boxes"></i> Inventario</a>
+                    <a href="#" class="nav-link"><i class="fas fa-route"></i> Rutas</a>
+                <?php break; ?>
+
+                <?php case 4: // TÉCNICO ?>
+                    <div class="menu-section-label text-danger">Campo</div>
+                    <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link"><i class="fas fa-tasks"></i> Mis Asignaciones</a>
+                    <a href="#" class="nav-link"><i class="fas fa-calendar-check"></i> Instalaciones Hoy</a>
+                    <a href="#" class="nav-link"><i class="fas fa-tools"></i> Materiales</a>
+                    <a href="#" class="nav-link"><i class="fas fa-camera"></i> Reportar Trabajo</a>
+                <?php break; ?>
+
+            <?php endswitch; ?>
 
             <div style="margin-top: auto;">
                 <div class="user-info-container">
-                    <img src="<?php echo $avatar_final; ?>" 
-                         alt="Avatar" 
-                         class="user-avatar"
-                         onerror="this.src='<?php echo $ruta_assets; ?>assets/img/avatar/default.png'">
+                    <img src="<?php echo $avatar_final; ?>" alt="Avatar" class="user-avatar" onerror="this.src='<?php echo $avatar_error; ?>'">
                     
                     <div style="font-size: 0.85rem; overflow: hidden;">
                         <a href="<?php echo $ruta_modules; ?>perfil.php" style="text-decoration: none; color: inherit;">

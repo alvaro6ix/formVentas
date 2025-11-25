@@ -23,16 +23,17 @@ QRcode::png($qrContent, $qrFile, QR_ECLEVEL_L, 3);
 // 2. CLASE PDF
 class PDF extends FPDF {
     function Header() {
-        $logoPath = 'C:\xampp\htdocs\FormVentas\assets\img-logo\bgital_logo_moderno.png'; 
-        if(file_exists($logoPath)) $this->Image($logoPath, 10, 10, 30);
+        // Ajusta esta ruta si es necesario, preferiblemente usa ruta relativa
+        $logoPath = '../assets/img-logo/bgital_logo_moderno.png'; 
+        if(file_exists($logoPath)) $this->Image($logoPath, 10, 10, 40);
         
         $this->SetFont('Arial', 'B', 16);
-        $this->SetTextColor(0, 12, 102);
+        $this->SetTextColor(0, 51, 102);
         $this->Cell(0, 10, utf8_decode('ORDEN DE SERVICIO BGITAL'), 0, 1, 'C');
         
         $this->SetDrawColor(0, 212, 255);
         $this->SetLineWidth(0.5);
-        $this->Line(10, 25, 200, 25);
+        $this->Line(10, 30, 200, 30);
         $this->Ln(15);
     }
 
@@ -43,12 +44,11 @@ class PDF extends FPDF {
         $this->Cell(0, 10, 'Pagina ' . $this->PageNo() . ' - BDIGITAL TELECOMUNICACIONES - ' . date('d/m/Y H:i'), 0, 0, 'C');
     }
     
-    // Títulos de Sección: FONDO AZUL CLARO (Corregido para acentos)
     function SectionTitle($title) {
-        $this->Ln(4);
+        $this->Ln(5);
         $this->SetFont('Arial', 'B', 11);
         $this->SetFillColor(230, 240, 255);
-        $this->SetTextColor(0, 12, 102);
+        $this->SetTextColor(0, 51, 102);
         $titulo_mayus = mb_strtoupper($title, 'UTF-8');
         $this->Cell(0, 8, utf8_decode($titulo_mayus), 0, 1, 'L', true);
         $this->SetTextColor(0);
@@ -63,7 +63,7 @@ class PDF extends FPDF {
     }
 
     function TableHeader($headers) {
-        $this->SetFillColor(0, 12, 102);
+        $this->SetFillColor(0, 51, 102);
         $this->SetTextColor(255);
         $this->SetFont('Arial', 'B', 8);
         foreach($headers as $header) {
@@ -86,8 +86,11 @@ $pdf = new PDF();
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
-// QR y Datos Cabecera
-$pdf->Image($qrFile, 165, 28, 30, 30);
+// ==========================================================
+// PARTE 1: CONTRATO DE VENTA (Diseño Original)
+// ==========================================================
+
+$pdf->Image($qrFile, 165, 32, 25, 25);
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(95, 6, 'FOLIO: ' . $v['folio'], 0, 1);
 $pdf->Cell(95, 6, 'FECHA: ' . date('d/m/Y', strtotime($v['fecha_servicio'])), 0, 1);
@@ -117,13 +120,11 @@ if($v['numero_cuenta']) $pdf->InfoRow('No. Cuenta:', $v['numero_cuenta']);
 if($v['puerto']) $pdf->InfoRow('Puerto:', $v['puerto']);
 if($v['placa']) $pdf->InfoRow('Placa:', $v['placa']);
 
-// AQUÍ ESTÁ LA CORRECCIÓN DE LA IDENTIFICACIÓN
-// Ahora simplemente imprimimos lo que guardaste (que ya trae el número concatenado)
 $pdf->InfoRow('Identificación:', $v['identificacion'] ?: 'No especificada');
 $pdf->InfoRow('Contrato Entregado:', $v['contrato_entregado'] ? 'SI' : 'NO');
 
 // EQUIPOS
-$pdf->SectionTitle('Equipos y Materiales');
+$pdf->SectionTitle('Equipos Asignados Inicialmente');
 $headers = [['EQUIPO', 50], ['MODELO', 50], ['SERIE / MAC', 50], ['OBSERVACIONES', 40]];
 $pdf->TableHeader($headers);
 $equipos = [
@@ -135,23 +136,6 @@ foreach($equipos as $equipo) {
 }
 $pdf->Ln(3);
 
-// MATERIALES
-if($v['materiales_utilizados']) {
-    $materiales = json_decode($v['materiales_utilizados'], true);
-    if(is_array($materiales) && count($materiales) > 0) {
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->Cell(0, 6, utf8_decode('MATERIALES UTILIZADOS:'), 0, 1);
-        $pdf->SetFont('Arial', '', 9);
-        foreach($materiales as $item) {
-            if (is_array($item) && isset($item['material'])) {
-                $texto = utf8_decode($item['material'] . ": " . $item['cantidad']);
-                $pdf->Cell(0, 5, chr(149) . " " . $texto, 0, 1);
-            }
-        }
-        $pdf->Ln(2);
-    }
-}
-
 // NOTAS Y LEGAL
 $pdf->SectionTitle('Notas de Instalación');
 $pdf->SetFont('Arial', '', 9);
@@ -159,8 +143,7 @@ $notas_legales = [
     "Es responsabilidad del contratante obtener los permisos necesarios.",
     "El cliente asignará a un mayor de 18 años para aprobar instalación.",
     "Servicio sujeto a cobertura.",
-    "No incluye cableado telefónico o red de datos.",
-    "No incluyeconfiguración de equipos depropiedad de cliente."
+    "No incluye cableado telefónico o red de datos."
 ];
 foreach ($notas_legales as $nota) {
     $pdf->SetX(15);
@@ -175,53 +158,28 @@ if($v['notas_instalacion']) {
     $pdf->MultiCell(0, 5, utf8_decode($v['notas_instalacion']));
 }
 
-// Forzar nueva página si no hay espacio suficiente
+// Forzar nueva página si falta espacio para firmas
 if($pdf->GetY() > 220) $pdf->AddPage();
 
 $pdf->SectionTitle('Términos de Conformidad');
 $pdf->SetFont('Arial', '', 8);
-
-// ==========================================
-// PÁRRAFO 1: Texto Legal General
-// ==========================================
-// Nota: Todo el texto está en una sola línea de código para evitar saltos raros
-$texto_legal = "Por medio de la presente manifiesto de conformidad que las actividades de instalación del Servicio Bdigital en mi domicilio son de mi entera satisfacción, adicional manifiesto que de forma enunciativa más no limitativa los equipos, computadora, instalación eléctrica, así como el mobiliario de mi propiedad, se encuentran en buen estado sin sufrir alteración alguna y funcionando adecuadamente, así como doy fe que todos los bienes de mi propiedad ubicados en las zonas de trabajo donde se instaló el servicio, se encuentran en el mismo lugar de origen y no se reportan faltantes.";
-
-// Usamos MultiCell para que quede JUSTIFICADO (alineado a ambos lados)
+$texto_legal = "Por medio de la presente manifiesto de conformidad que las actividades de instalación del Servicio Bdigital en mi domicilio son de mi entera satisfacción, adicional manifiesto que de forma enunciativa más no limitativa los equipos, computadora, instalación eléctrica, así como el mobiliario de mi propiedad, se encuentran en buen estado sin sufrir alteración alguna.";
 $pdf->MultiCell(0, 4, utf8_decode($texto_legal), 0, 'J');
+$pdf->Ln(3);
 
-$pdf->Ln(3); // Espacio entre párrafos
-
-// ==========================================
-// PÁRRAFO 2: Titular con Negritas
-// ==========================================
-
-// 1. "El titular "
 $pdf->Write(5, utf8_decode("El titular "));
-
-// 2. NOMBRE (En Negrita)
 $pdf->SetFont('Arial', 'B', 8);
 $pdf->Write(5, utf8_decode(strtoupper($v['nombre_titular'])));
-
-// 3. Resto del texto (Normal)
 $pdf->SetFont('Arial', '', 8);
+$pdf->Write(5, utf8_decode(" manifiesta de acuerdo en la instalación de cables, extensiones, decodificadores y demás accesorios."));
+$pdf->Ln(6);
 
-// IMPORTANTE: Este texto no tiene 'Enters' dentro de las comillas para que fluya continuo
-$texto_resto = " manifiesta de acuerdo en la instalación de cables, extensiones, decodificadores y demás accesorios y en caso de que modifique, corte y/o desconecte los equipos o instalaciones del cableado, Bdigital no se hace responsable de la calidad en la recepción del servicio hasta que el suscriptor reporte la falla para la atención y soporte correspondiente.";
-
-$pdf->Write(5, utf8_decode($texto_resto));
-
-$pdf->Ln(8); // Espacio final antes de la evaluación
-
-// ==========================================
-// EVALUACIÓN VISUAL (Colores y Botones)
-// ==========================================
+// EVALUACIÓN DEL SERVICIO
 if($v['eval_servicios_explicados'] !== null) {
     if($pdf->GetY() > 210) $pdf->AddPage();
     
     $pdf->SectionTitle('Evaluación del Servicio');
     
-    // Checkboxes Simples
     function printCheckRow($pdf, $text, $val) {
         $pdf->SetFont('Arial', '', 9);
         $pdf->Cell(130, 6, utf8_decode($text), 0, 0);
@@ -239,85 +197,171 @@ if($v['eval_servicios_explicados'] !== null) {
     printCheckRow($pdf, '2. ¿El instalador entregó el manual de bienvenida?', $v['eval_manual_entregado']);
     
     $pdf->Ln(3);
-
-    // --- FUNCIÓN PARA DIBUJAR ETIQUETAS DE COLORES ---
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->Cell(0, 6, utf8_decode('3. Calificación del servicio recibido:'), 0, 1);
+    
+    // Botones de colores simulados
     function drawColorRating($pdf, $titulo, $valor_bd) {
-        $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(0, 6, utf8_decode($titulo), 0, 1);
-        $pdf->Ln(1);
-
         $opciones = [
-            'excelente' => ['r'=>46,  'g'=>204, 'b'=>113], // Verde Esmeralda
-            'bueno'     => ['r'=>52,  'g'=>152, 'b'=>219], // Azul
-            'regular'   => ['r'=>243, 'g'=>156, 'b'=>18],  // Naranja
-            'malo'      => ['r'=>231, 'g'=>76,  'b'=>60]   // Rojo
+            'excelente' => ['r'=>46,  'g'=>204, 'b'=>113], 
+            'bueno'     => ['r'=>52,  'g'=>152, 'b'=>219],
+            'regular'   => ['r'=>243, 'g'=>156, 'b'=>18],
+            'malo'      => ['r'=>231, 'g'=>76,  'b'=>60]
         ];
-
-        $anchoBtn = 35;
-        $altoBtn = 8;
-        $margenX = 25; // Centrado
-        $pdf->SetX($margenX);
-
+        $anchoBtn = 30;
+        $pdf->SetX(25);
         foreach($opciones as $nombre => $color) {
             $seleccionado = (strtolower($valor_bd) == $nombre);
-            
             if($seleccionado) {
-                // Si está seleccionado: Color Fuerte y Texto Blanco
                 $pdf->SetFillColor($color['r'], $color['g'], $color['b']);
                 $pdf->SetTextColor(255);
-                $pdf->SetFont('Arial', 'B', 8);
-                // Borde negro para resaltar
                 $pdf->SetDrawColor(0);
             } else {
-                // No seleccionado: Gris claro y Texto Gris
                 $pdf->SetFillColor(245, 245, 245);
                 $pdf->SetTextColor(150);
-                $pdf->SetFont('Arial', '', 8);
                 $pdf->SetDrawColor(200);
             }
-
-            // Dibujar Celda
-            $pdf->Cell($anchoBtn, $altoBtn, strtoupper($nombre), 1, 0, 'C', true);
-            
-            // Separación
+            $pdf->Cell($anchoBtn, 7, strtoupper($nombre), 1, 0, 'C', true);
             $pdf->SetX($pdf->GetX() + 2);
         }
-        // Resetear estilos
         $pdf->SetTextColor(0);
         $pdf->SetDrawColor(0);
-        $pdf->Ln(12);
+        $pdf->Ln(10);
     }
-
-    drawColorRating($pdf, '3. Trato recibido por el instalador:', $v['eval_trato_recibido']);
-    drawColorRating($pdf, '4. Eficiencia en la instalación:', $v['eval_eficiencia']);
+    drawColorRating($pdf, '', $v['eval_trato_recibido']);
 }
 
-// FIRMAS
-if($pdf->GetY() > 240) $pdf->AddPage();
+// FIRMAS PAGINA 1
 $pdf->SetY(-40);
-
 $pdf->SetDrawColor(0);
 $pdf->Line(20, $pdf->GetY(), 90, $pdf->GetY());
 $pdf->Line(120, $pdf->GetY(), 190, $pdf->GetY());
 $pdf->Ln(2);
-
 $pdf->SetFont('Arial', 'B', 8);
 $pdf->Cell(80, 4, 'FIRMA DEL CLIENTE', 0, 0, 'C');
 $pdf->Cell(20, 4, '', 0, 0);
-$pdf->Cell(80, 4, 'FIRMA DEL TECNICO', 0, 1, 'C');
+$pdf->Cell(80, 4, 'FIRMA DEL VENDEDOR', 0, 1, 'C');
 
-$pdf->SetFont('Arial', '', 7);
-$pdf->Ln(4);
-$pdf->Cell(80, 3, utf8_decode($v['nombre_titular']), 0, 0, 'C');
-$pdf->Cell(20, 3, '', 0, 0);
-$pdf->Cell(80, 3, utf8_decode($v['instalador_nombre']), 0, 1, 'C');
 
-if($v['instalador_numero']) {
-    $pdf->Ln(3);
-    $pdf->Cell(100, 3, '', 0, 0);
-    $pdf->Cell(80, 3, 'No. Empleado: ' . $v['instalador_numero'], 0, 1, 'C');
+// ==========================================================
+// PARTE 2: REPORTE DE CIERRE TÉCNICO (MATERIALES Y FOTOS)
+// ==========================================================
+// Se agrega solo si hay materiales o fotos
+$hayMateriales = !empty($v['materiales_utilizados']) && $v['materiales_utilizados'] != '[]';
+$hayFotos = !empty($v['evidencia_fotos']) && $v['evidencia_fotos'] != '[]';
+
+if ($hayMateriales || $hayFotos) {
+    $pdf->AddPage();
+    
+    // CABECERA REPORTE TÉCNICO
+    $pdf->SetFont('Arial', 'B', 14);
+    $pdf->SetTextColor(0, 51, 102);
+    $pdf->Cell(0, 10, utf8_decode('REPORTE TÉCNICO DE INSTALACIÓN'), 0, 1, 'C');
+    $pdf->SetTextColor(0);
+    
+    $pdf->SetFont('Arial', '', 10);
+    $fecha_cierre = $v['fecha_completada'] ? date('d/m/Y H:i', strtotime($v['fecha_completada'])) : 'N/A';
+    $pdf->Cell(0, 6, utf8_decode('Fecha de Cierre: ' . $fecha_cierre), 0, 1, 'C');
+    
+    // DATOS DEL TÉCNICO
+    if($v['instalador_nombre']) {
+        $pdf->Ln(5);
+        $pdf->SetFillColor(240, 240, 240);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(0, 8, utf8_decode('  TÉCNICO RESPONSABLE'), 0, 1, 'L', true);
+        $pdf->SetFont('Arial', '', 10);
+        $pdf->Cell(0, 8, utf8_decode('  Nombre: ' . $v['instalador_nombre']), 0, 1, 'L');
+    }
+
+    // MATERIALES
+    if ($hayMateriales) {
+        $pdf->SectionTitle('Materiales Utilizados');
+        
+        $materiales = json_decode($v['materiales_utilizados'], true);
+        
+        // Cabecera
+        $pdf->SetFillColor(0, 51, 102);
+        $pdf->SetTextColor(255);
+        $pdf->SetFont('Arial', 'B', 9);
+        $pdf->Cell(140, 7, utf8_decode('DESCRIPCIÓN / MATERIAL'), 1, 0, 'L', true);
+        $pdf->Cell(50, 7, utf8_decode('CANTIDAD'), 1, 1, 'C', true);
+        $pdf->SetTextColor(0);
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->Ln();
+
+        foreach ($materiales as $mat) {
+            $nombre = is_array($mat) ? ($mat['material'] ?? 'N/A') : 'Material';
+            $cant = is_array($mat) ? ($mat['cantidad'] ?? '1') : '1';
+            
+            $pdf->Cell(140, 6, utf8_decode($nombre), 1);
+            $pdf->Cell(50, 6, $cant, 1, 1, 'C');
+            $pdf->Ln();
+        }
+    }
+
+    // NOTAS TÉCNICAS
+    if($v['notas_tecnico']) {
+        $pdf->SectionTitle('Notas del Técnico');
+        $pdf->SetFont('Arial', '', 9);
+        $pdf->MultiCell(0, 5, utf8_decode($v['notas_tecnico']), 1, 'L');
+    }
+
+    // EVIDENCIA FOTOGRÁFICA
+    if ($hayFotos) {
+        $pdf->SectionTitle('Evidencia Fotográfica');
+        $fotos = json_decode($v['evidencia_fotos'], true);
+        
+        $x_start = 15;
+        $y_start = $pdf->GetY() + 5;
+        $img_width = 55;
+        $img_height = 55;
+        $margin = 10;
+        $count = 0;
+        
+        foreach ($fotos as $foto) {
+            $ruta_img = '../assets/evidencias/' . $foto;
+            
+            if (file_exists($ruta_img)) {
+                // Control salto de página si la imagen se sale
+                if ($y_start + $img_height > 260) {
+                    $pdf->AddPage();
+                    $y_start = 20;
+                    $x_start = 15;
+                    $count = 0;
+                }
+
+                // Control salto de línea (3 fotos por fila)
+                if ($count > 0 && $count % 3 == 0) {
+                    $y_start += $img_height + $margin;
+                    $x_start = 15;
+                }
+                
+                $pdf->Image($ruta_img, $x_start, $y_start, $img_width, $img_height);
+                $pdf->Rect($x_start, $y_start, $img_width, $img_height); // Marco
+                
+                $x_start += $img_width + $margin;
+                $count++;
+            }
+        }
+        // Mover el cursor abajo de las imágenes para lo que siga
+        $pdf->SetY($y_start + $img_height + 10);
+    }
+    
+    // FIRMA DE CONFORMIDAD FINAL
+    // Asegurar que la firma no quede cortada entre páginas
+    if($pdf->GetY() > 240) $pdf->AddPage();
+    
+    $pdf->SetY(-40);
+    $pdf->SetDrawColor(0);
+    $pdf->Line(60, $pdf->GetY(), 150, $pdf->GetY());
+    $pdf->Ln(2);
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->Cell(0, 4, utf8_decode('FIRMA DE RECIBIDO / CLIENTE'), 0, 1, 'C');
+    $pdf->SetFont('Arial', '', 8);
+    $pdf->Cell(0, 4, utf8_decode('Acepto la instalación y los equipos en custodia'), 0, 1, 'C');
 }
 
 $pdf->Output('I', 'Orden_' . $v['folio'] . '.pdf');
+
 if(file_exists($qrFile)) unlink($qrFile);
 ?>

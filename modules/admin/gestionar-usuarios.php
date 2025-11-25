@@ -115,7 +115,7 @@ $roles = $queryRoles->fetchAll(PDO::FETCH_ASSOC);
 .close-modal:hover { color: #333; }
 
 .filtro-activo {
-    background: var(--primary-color, #4F46E5) !important; 
+    background: var(--primary-color, #0950e7ff) !important; 
     color: white !important;
 }
 </style>
