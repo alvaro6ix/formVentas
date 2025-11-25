@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-11-2025 a las 18:37:47
+-- Tiempo de generación: 25-11-2025 a las 23:39:54
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -8447,7 +8447,55 @@ INSERT INTO `logs_actividad` (`id`, `usuario_id`, `accion`, `descripcion`, `ip_a
 (2, 1, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251124-0002', NULL, NULL, '2025-11-24 16:32:29'),
 (3, 1, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251124-0003', NULL, NULL, '2025-11-24 17:05:16'),
 (4, 1, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251124-0004', NULL, NULL, '2025-11-24 17:18:03'),
-(5, 1, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251124-0001', NULL, NULL, '2025-11-24 17:33:38');
+(5, 1, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251124-0001', NULL, NULL, '2025-11-24 17:33:38'),
+(6, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251124-0002', NULL, NULL, '2025-11-24 21:19:38'),
+(7, 1, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251124-0004', NULL, NULL, '2025-11-25 17:27:17'),
+(8, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 17:58:31'),
+(9, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 18:44:05'),
+(10, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251125-0002', NULL, NULL, '2025-11-25 20:09:17'),
+(11, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0002', NULL, NULL, '2025-11-25 20:09:36'),
+(12, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:18:03'),
+(13, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:19:25'),
+(14, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:19:32'),
+(15, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:19:33'),
+(16, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:19:37'),
+(17, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:19:38'),
+(18, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0001', NULL, NULL, '2025-11-25 20:31:03'),
+(19, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0002', NULL, NULL, '2025-11-25 20:33:38'),
+(20, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0002', NULL, NULL, '2025-11-25 20:33:42'),
+(21, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0002', NULL, NULL, '2025-11-25 20:34:11'),
+(22, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251125-0003', NULL, NULL, '2025-11-25 21:58:06'),
+(23, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0003', NULL, NULL, '2025-11-25 21:58:30'),
+(24, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0003', NULL, NULL, '2025-11-25 21:58:39'),
+(25, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0003', NULL, NULL, '2025-11-25 21:58:50'),
+(26, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0003', NULL, NULL, '2025-11-25 21:59:17'),
+(27, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:11:22'),
+(28, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:11:41'),
+(29, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:12:37');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `roles`
+--
+
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  `descripcion` text DEFAULT NULL,
+  `permisos` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`permisos`)),
+  `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id`, `nombre`, `descripcion`, `permisos`, `fecha_creacion`) VALUES
+(1, 'admin', 'Administrador del Sistema', '{\"usuarios\": true, \"ventas\": true, \"despacho\": true, \"tecnicos\": true, \"reportes\": true, \"configuracion\": true}', '2025-11-24 18:20:28'),
+(2, 'ventas', 'Personal de Ventas', '{\"ventas\": true, \"clientes\": true, \"cotizaciones\": true}', '2025-11-24 18:20:28'),
+(3, 'despacho', 'Personal de Despacho', '{\"ordenes\": true, \"inventario\": true, \"asignaciones\": true}', '2025-11-24 18:20:28'),
+(4, 'tecnico', 'Técnicos de Campo', '{\"instalaciones\": true, \"soporte\": true, \"reportes_tecnicos\": true}', '2025-11-24 18:20:28');
 
 -- --------------------------------------------------------
 
@@ -8469,6 +8517,23 @@ CREATE TABLE `sesiones` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `sesiones_activas`
+--
+
+CREATE TABLE `sesiones_activas` (
+  `id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `token_sesion` varchar(100) NOT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `fecha_inicio` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_expiracion` datetime DEFAULT NULL,
+  `activa` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `usuarios`
 --
 
@@ -8484,15 +8549,27 @@ CREATE TABLE `usuarios` (
   `intentos_fallidos` int(11) DEFAULT 0,
   `bloqueado_hasta` datetime DEFAULT NULL,
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `rol_id` int(11) DEFAULT 2,
+  `nombre` varchar(100) DEFAULT NULL,
+  `apellido_paterno` varchar(100) DEFAULT NULL,
+  `apellido_materno` varchar(100) DEFAULT NULL,
+  `telefono` varchar(15) DEFAULT NULL,
+  `avatar` varchar(255) DEFAULT 'default-avatar.png',
+  `bloqueado` tinyint(1) DEFAULT 0,
+  `token_recuperacion` varchar(100) DEFAULT NULL,
+  `token_expiracion` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `usuario`, `password`, `nombre_completo`, `email`, `rol`, `activo`, `ultimo_acceso`, `intentos_fallidos`, `bloqueado_hasta`, `fecha_creacion`, `fecha_actualizacion`) VALUES
-(1, 'Bgital', '$2y$10$FZdsly2IW3/bO9U0Xrj/iueaVTH7vWhbVy9MSGzhHOCPXs0KUYBDW', 'Administrador Bdigital', 'admin@bdigital.com', 'admin', 1, NULL, 0, NULL, '2025-11-24 15:38:03', '2025-11-24 15:51:53');
+INSERT INTO `usuarios` (`id`, `usuario`, `password`, `nombre_completo`, `email`, `rol`, `activo`, `ultimo_acceso`, `intentos_fallidos`, `bloqueado_hasta`, `fecha_creacion`, `fecha_actualizacion`, `rol_id`, `nombre`, `apellido_paterno`, `apellido_materno`, `telefono`, `avatar`, `bloqueado`, `token_recuperacion`, `token_expiracion`) VALUES
+(1, 'Bgital', '$2y$10$Gd/viYIanjU0obo7ili1V.kKQNzo6nbgxE/ENY6D40k3K9oo1CnQm', 'Administrador Bgital', 'alvaro69@gmail.com', 'admin', 1, '2025-11-25 16:37:24', 0, NULL, '2025-11-24 15:38:03', '2025-11-25 22:37:24', 1, 'Alvaroo', 'Aldama', 'Bautista', '72276345272', 'user_1_1764091863.png', 0, NULL, NULL),
+(2, 'itzel1', '$2y$10$CHOSno/92or.oQHnW63kruLcAXW9YS7ntmRWZw8qHwNj/JY4xF59W', '', 'iztel@gmail.com', 'vendedor', 1, '2025-11-25 16:12:49', 0, NULL, '2025-11-24 19:59:47', '2025-11-25 22:12:49', 3, 'Itzel', 'Martinez', 'Hernandez', '7224859868', 'user_2_1764091873.png', 0, NULL, NULL),
+(3, 'mario1', '$2y$10$czbkt1GFl8x/ylM2tdKSo.SI/O.OnoqN/IeaC6n1jULGR6nRJpWrO', '', 'mario@gmail.com', 'vendedor', 1, '2025-11-25 16:36:36', 0, NULL, '2025-11-24 20:19:22', '2025-11-25 22:36:36', 4, 'Mario', 'Hernandez ', 'Hernandez', '72224575554', 'user_3_1764091886.png', 0, NULL, NULL),
+(4, 'gustavo1', '$2y$10$IXFomXVwGPQk9P05xqf2ZebMxSO/mZhAuFm1TKUnwxboLEBG3F3um', '', 'gus@gmail.com', 'vendedor', 1, '2025-11-25 16:36:42', 0, NULL, '2025-11-24 20:22:17', '2025-11-25 22:36:42', 2, 'Gustavo', 'Hernandez', 'Sanchez', '72276345272', 'user_4_1764091893.jpg', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -8543,18 +8620,36 @@ CREATE TABLE `ventas` (
   `qr_code_path` varchar(255) DEFAULT NULL,
   `estatus` enum('activa','cancelada','completada') DEFAULT 'activa',
   `fecha_creacion` timestamp NOT NULL DEFAULT current_timestamp(),
-  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `asignado_despacho` int(11) DEFAULT NULL,
+  `asignado_tecnico` int(11) DEFAULT NULL,
+  `fecha_asignacion_despacho` datetime DEFAULT NULL,
+  `fecha_asignacion_tecnico` datetime DEFAULT NULL,
+  `fecha_completada` datetime DEFAULT NULL,
+  `notas_despacho` text DEFAULT NULL,
+  `notas_tecnico` text DEFAULT NULL,
+  `hora_asignacion` datetime DEFAULT NULL,
+  `hora_llegada` datetime DEFAULT NULL,
+  `hora_inicio_instalacion` datetime DEFAULT NULL,
+  `hora_fin_instalacion` datetime DEFAULT NULL,
+  `evidencia_fotos` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`evidencia_fotos`)),
+  `firma_cliente_final` varchar(255) DEFAULT NULL,
+  `motivo_reagendado` text DEFAULT NULL,
+  `fecha_reagendada` datetime DEFAULT NULL,
+  `estado_instalacion` enum('pendiente','en_camino','instalando','pausado','finalizado') DEFAULT 'pendiente',
+  `tiempo_acumulado` int(11) DEFAULT 0,
+  `ultimo_cambio_estado` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Volcado de datos para la tabla `ventas`
 --
 
-INSERT INTO `ventas` (`id`, `folio`, `usuario_id`, `numero_cuenta`, `fecha_servicio`, `puerto`, `placa`, `tipo_servicio`, `nombre_titular`, `calle`, `numero_interior`, `numero_exterior`, `colonia`, `delegacion_municipio`, `codigo_postal`, `telefono`, `celular`, `tipo_vivienda`, `tipo_vivienda_otro`, `referencias`, `paquete_contratado`, `tipo_promocion`, `correo_electronico`, `identificacion`, `contrato_entregado`, `ont_modelo`, `ont_serie`, `otro_equipo_modelo`, `otro_equipo_serie`, `materiales_utilizados`, `notas_instalacion`, `instalador_nombre`, `instalador_firma`, `instalador_numero`, `eval_servicios_explicados`, `eval_manual_entregado`, `eval_trato_recibido`, `eval_eficiencia`, `pdf_path`, `qr_code_path`, `estatus`, `fecha_creacion`, `fecha_actualizacion`) VALUES
-(1, 'BGD-20251124-0001', 1, '14545', '2025-11-24', '123154', '123', 'soporte', 'ALDAMA BAUTISTA ALVARO', 'silviano enriquez 204', '203', '203', 'Cuauhtémoc', 'Toluca', '50130', '72283373838', '7227453989', 'casa', NULL, 'edificio', 'Internet 50MB', '50%', 'alvaro69@gmail.com', 'INE', 1, '151e5', '1512ded', '1265ew', '3251122', NULL, 'sin fallaas', 'JUAN ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'activa', '2025-11-24 16:16:05', '2025-11-24 17:33:38'),
-(2, 'BGD-20251124-0002', 1, '2242', '2025-11-24', '34324', '34324', 'soporte', 'ERIKA BAUTISTA MORA', 'tolloacan', '', '500', 'Tollocan INFONAVIT', 'Toluca', '50120', '9283828', '96867667676', 'casa', NULL, 'casa grade ', 'Internet 50MB', '50%', 'erika@gmail.com', 'RFC', 1, 'nfuh2727', '7yrh723r', '', 'hgggh', '[{\"material\":\"Conectores RJ45\",\"cantidad\":\"2\"},{\"material\":\"Cable UTP (m)\",\"cantidad\":\"2\"},{\"material\":\"Grapas\",\"cantidad\":\"5\"}]', 'se fue la luz', 'carlos ivan ', NULL, '12u', 0, 1, 'excelente', 'excelente', NULL, NULL, 'activa', '2025-11-24 16:32:29', '2025-11-24 16:32:29'),
-(3, 'BGD-20251124-0003', 1, '54', '2025-11-24', '123154', '2', 'cambio_domicilio', 'ALDAMA BAUTISTA ALVARO', 'tolloacan', '203', '500', 'Américas', 'Toluca', '50130', '9283828', '96867667676', 'casa', NULL, 'edificio', 'Internet 50MB', '50%', 'erika@gmail.com', 'RFC', 1, 'nfuh2727', '7yrh723r', 'jjhjhjg', 'hgggh', '[{\"material\":\"Cable UTP (m)\",\"cantidad\":\"3\"},{\"material\":\"Conectores RJ45\",\"cantidad\":\"5\"},{\"material\":\"Tensores\",\"cantidad\":\"4\"},{\"material\":\"Patch Cord\",\"cantidad\":\"654\"}]', 'todo salio perfecto lo planeado ', 'humberto sanchez', NULL, '123455', 1, 1, 'bueno', 'excelente', NULL, NULL, 'activa', '2025-11-24 17:05:16', '2025-11-24 17:05:16'),
-(4, 'BGD-20251124-0004', 1, '123456', '2025-11-24', '123456', '123456', 'soporte', 'HUMBERTO MARTINEZ GIMENEZ ', 'uiversidad, alvarez', '203', '300b', 'Universidad', 'Toluca', '50130', '72283373838', '7227453989', 'negocio', NULL, 'edificio de 3 pisos ', 'Internet 200MB + TV', '20% de descuento', 'humberto@gmail.com', 'RFC aabalia201027', 1, '123456', '123456', '123456', '123456', '[{\"material\":\"Cable UTP (m)\",\"cantidad\":\"2\"},{\"material\":\"Conectores RJ45\",\"cantidad\":\"3\"},{\"material\":\"Grapas\",\"cantidad\":\"5\"}]', 'se fue la luz pero regreso a los 2 minutos', 'alvaro aldama bautista', NULL, '123456', 1, 1, 'excelente', 'regular', NULL, NULL, 'activa', '2025-11-24 17:18:03', '2025-11-24 17:18:03');
+INSERT INTO `ventas` (`id`, `folio`, `usuario_id`, `numero_cuenta`, `fecha_servicio`, `puerto`, `placa`, `tipo_servicio`, `nombre_titular`, `calle`, `numero_interior`, `numero_exterior`, `colonia`, `delegacion_municipio`, `codigo_postal`, `telefono`, `celular`, `tipo_vivienda`, `tipo_vivienda_otro`, `referencias`, `paquete_contratado`, `tipo_promocion`, `correo_electronico`, `identificacion`, `contrato_entregado`, `ont_modelo`, `ont_serie`, `otro_equipo_modelo`, `otro_equipo_serie`, `materiales_utilizados`, `notas_instalacion`, `instalador_nombre`, `instalador_firma`, `instalador_numero`, `eval_servicios_explicados`, `eval_manual_entregado`, `eval_trato_recibido`, `eval_eficiencia`, `pdf_path`, `qr_code_path`, `estatus`, `fecha_creacion`, `fecha_actualizacion`, `asignado_despacho`, `asignado_tecnico`, `fecha_asignacion_despacho`, `fecha_asignacion_tecnico`, `fecha_completada`, `notas_despacho`, `notas_tecnico`, `hora_asignacion`, `hora_llegada`, `hora_inicio_instalacion`, `hora_fin_instalacion`, `evidencia_fotos`, `firma_cliente_final`, `motivo_reagendado`, `fecha_reagendada`, `estado_instalacion`, `tiempo_acumulado`, `ultimo_cambio_estado`) VALUES
+(6, 'BGD-20251125-0001', 4, '123456', '2025-11-25', '123456', '123456', 'instalacion', 'ERIKA BAUTISTA MORA', 'silviano enriquez 204', '203', '204', 'Universidad', 'Toluca', '50130', '123456', '7227453989', 'casa', NULL, 'edificio de uaemex', 'Internet 50MB', '20% de descuento', 'alvaro69@gmail.com', 'RFC AADFDTT666RR6GFG', 1, '123456', '123456', '123456', '123456', '[{\"material\":\"Cable Fibra (mts)\",\"cantidad\":\"2\"}]', 'fue muy facil', 'humberto sanchez', NULL, '123456', 1, 1, 'excelente', 'bueno', NULL, NULL, 'completada', '2025-11-25 17:58:31', '2025-11-25 20:31:03', 2, 3, NULL, '2025-11-25 12:44:05', '2025-11-25 14:31:03', NULL, 'niguhan', NULL, NULL, NULL, NULL, '[\"evidencia_6_69261207f222d.png\"]', NULL, NULL, NULL, 'finalizado', 50411, '2025-11-25 14:19:38'),
+(7, 'BGD-20251125-0002', 4, '2r5235', '2025-11-25', '6566', '567567', 'cambio_domicilio', 'JUAN', 'uiversidad, alvarez', '203', '300b', 'Toluca de Lerdo Centro', 'Toluca', '50000', '123456', '7227453989', 'casa', NULL, 'edificio de 3 pisos', 'Internet 50MB', '20% de descuento', 'humberto@gmail.com', 'INE 15114435516', 1, '123456', '123456', '123456', '123456', '[{\"material\":\"Conectores Mecánicos\",\"cantidad\":\"2\"},{\"material\":\"Tensores\",\"cantidad\":\"2\"}]', 'ninguhna', 'humberto sanchez', NULL, '123456', 1, 1, 'excelente', 'excelente', NULL, NULL, 'completada', '2025-11-25 20:09:17', '2025-11-25 20:34:11', 2, 3, NULL, '2025-11-25 14:09:36', '2025-11-25 14:34:11', NULL, 'todo al 100', NULL, NULL, NULL, NULL, '[\"evidencia_7_692612c3cfb06.png\"]', NULL, NULL, NULL, 'finalizado', 0, '2025-11-25 14:33:42'),
+(8, 'BGD-20251125-0003', 4, '155511', '2025-11-25', '515156', '51515', 'cambio_domicilio', 'RENATA', 'cipres', '01', '200', 'Ciprés', 'Toluca', '50120', '72151121', '72245484848', 'casa', NULL, 'casa', 'Internet 50MB', '20% de descuento', 'ren@gmail.com', 'INE 2151f51we561w', 1, '123456', '1512ded', 'jjhjhjg', '123456', '[{\"material\":\"Tensores\",\"cantidad\":\"5\"},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":\"5\"}]', 'ninkngngnjk', 'humberto sanchez', NULL, '123456', 1, 1, 'excelente', 'excelente', NULL, NULL, 'completada', '2025-11-25 21:58:06', '2025-11-25 21:59:17', 2, 3, NULL, '2025-11-25 15:58:30', '2025-11-25 15:59:17', NULL, 'niguna ', NULL, NULL, NULL, NULL, '[\"evidencia_8_692626b54fe1d.jpg\"]', NULL, NULL, NULL, 'finalizado', 0, '2025-11-25 15:58:50'),
+(9, 'BGD-20251125-0004', 4, '5y45', '2025-11-25', '235345', '4353', 'instalacion', 'HUMBERTO MARTINEZ GIMENEZ ', 'uiversidad, alvarez', '203', '300b', 'Universidad', 'Toluca', '50130', '473583', '5387365436', 'casa', NULL, 'edificio de 3 pisos', 'Internet 50MB', '20% de descuento', 'humberto@gmail.com', 'RFC 563543543873', 1, 'nfuh2727', '123456', '1265ew', '123456', '[{\"material\":\"Tensores\",\"cantidad\":\"5445\"},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":\"5\"}]', 'tyjtyjyf', 'carlos ivan ', NULL, '123456', 1, 1, 'excelente', 'bueno', NULL, NULL, 'completada', '2025-11-25 22:11:22', '2025-11-25 22:12:37', 2, 3, NULL, '2025-11-25 16:11:41', '2025-11-25 16:12:37', NULL, 'yjyujkyuf', NULL, NULL, NULL, NULL, '[\"evidencia_9_692629d5665c3.png\",\"evidencia_9_692629d566a0f.jpg\"]', NULL, NULL, NULL, 'finalizado', 0, '2025-11-25 16:11:41');
 
 --
 -- Disparadores `ventas`
@@ -8588,6 +8683,46 @@ CREATE TABLE `vista_estadisticas_vendedor` (
 ,`ventas_activas` bigint(21)
 ,`ventas_completadas` bigint(21)
 ,`ultima_venta` timestamp
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `vista_estadisticas_ventas`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `vista_estadisticas_ventas` (
+`fecha` date
+,`total_ventas` bigint(21)
+,`ventas_activas` decimal(22,0)
+,`ventas_completadas` decimal(22,0)
+,`ventas_canceladas` decimal(22,0)
+,`usuario_id` int(11)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `vista_usuarios_completa`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `vista_usuarios_completa` (
+`id` int(11)
+,`usuario` varchar(50)
+,`nombre` varchar(100)
+,`apellido_paterno` varchar(100)
+,`apellido_materno` varchar(100)
+,`nombre_completo` varchar(302)
+,`email` varchar(100)
+,`telefono` varchar(15)
+,`avatar` varchar(255)
+,`activo` tinyint(1)
+,`bloqueado` tinyint(1)
+,`ultimo_acceso` datetime
+,`fecha_creacion` timestamp
+,`rol_id` int(11)
+,`rol_nombre` varchar(50)
+,`rol_descripcion` text
 );
 
 -- --------------------------------------------------------
@@ -8656,6 +8791,24 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 -- --------------------------------------------------------
 
 --
+-- Estructura para la vista `vista_estadisticas_ventas`
+--
+DROP TABLE IF EXISTS `vista_estadisticas_ventas`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_estadisticas_ventas`  AS SELECT cast(`ventas`.`fecha_creacion` as date) AS `fecha`, count(0) AS `total_ventas`, sum(case when `ventas`.`estatus` = 'activa' then 1 else 0 end) AS `ventas_activas`, sum(case when `ventas`.`estatus` = 'completada' then 1 else 0 end) AS `ventas_completadas`, sum(case when `ventas`.`estatus` = 'cancelada' then 1 else 0 end) AS `ventas_canceladas`, `ventas`.`usuario_id` AS `usuario_id` FROM `ventas` GROUP BY cast(`ventas`.`fecha_creacion` as date), `ventas`.`usuario_id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `vista_usuarios_completa`
+--
+DROP TABLE IF EXISTS `vista_usuarios_completa`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_usuarios_completa`  AS SELECT `u`.`id` AS `id`, `u`.`usuario` AS `usuario`, `u`.`nombre` AS `nombre`, `u`.`apellido_paterno` AS `apellido_paterno`, `u`.`apellido_materno` AS `apellido_materno`, concat(`u`.`nombre`,' ',`u`.`apellido_paterno`,' ',`u`.`apellido_materno`) AS `nombre_completo`, `u`.`email` AS `email`, `u`.`telefono` AS `telefono`, `u`.`avatar` AS `avatar`, `u`.`activo` AS `activo`, `u`.`bloqueado` AS `bloqueado`, `u`.`ultimo_acceso` AS `ultimo_acceso`, `u`.`fecha_creacion` AS `fecha_creacion`, `r`.`id` AS `rol_id`, `r`.`nombre` AS `rol_nombre`, `r`.`descripcion` AS `rol_descripcion` FROM (`usuarios` `u` left join `roles` `r` on(`u`.`rol_id` = `r`.`id`)) ;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura para la vista `vista_ventas_detalle`
 --
 DROP TABLE IF EXISTS `vista_ventas_detalle`;
@@ -8683,6 +8836,13 @@ ALTER TABLE `logs_actividad`
   ADD KEY `idx_fecha` (`fecha_hora`);
 
 --
+-- Indices de la tabla `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `nombre` (`nombre`);
+
+--
 -- Indices de la tabla `sesiones`
 --
 ALTER TABLE `sesiones`
@@ -8693,13 +8853,28 @@ ALTER TABLE `sesiones`
   ADD KEY `idx_activa` (`activa`);
 
 --
+-- Indices de la tabla `sesiones_activas`
+--
+ALTER TABLE `sesiones_activas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token_sesion` (`token_sesion`),
+  ADD KEY `idx_token` (`token_sesion`),
+  ADD KEY `idx_usuario` (`usuario_id`);
+
+--
 -- Indices de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `usuario` (`usuario`),
+  ADD UNIQUE KEY `uq_usuario` (`usuario`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `uq_email` (`email`),
   ADD KEY `idx_usuario` (`usuario`),
-  ADD KEY `idx_activo` (`activo`);
+  ADD KEY `idx_activo` (`activo`),
+  ADD KEY `idx_usuarios_rol` (`rol_id`),
+  ADD KEY `idx_usuarios_activo` (`activo`),
+  ADD KEY `idx_usuarios_email` (`email`);
 
 --
 -- Indices de la tabla `ventas`
@@ -8707,12 +8882,14 @@ ALTER TABLE `usuarios`
 ALTER TABLE `ventas`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `folio` (`folio`),
-  ADD KEY `usuario_id` (`usuario_id`),
   ADD KEY `idx_folio` (`folio`),
   ADD KEY `idx_fecha` (`fecha_servicio`),
   ADD KEY `idx_titular` (`nombre_titular`),
   ADD KEY `idx_estatus` (`estatus`),
-  ADD KEY `idx_codigo_postal` (`codigo_postal`);
+  ADD KEY `idx_codigo_postal` (`codigo_postal`),
+  ADD KEY `idx_ventas_usuario` (`usuario_id`),
+  ADD KEY `idx_ventas_estatus` (`estatus`),
+  ADD KEY `idx_ventas_fecha_servicio` (`fecha_servicio`);
 ALTER TABLE `ventas` ADD FULLTEXT KEY `idx_fulltext_titular` (`nombre_titular`,`calle`,`colonia`);
 
 --
@@ -8729,7 +8906,13 @@ ALTER TABLE `codigos_postales`
 -- AUTO_INCREMENT de la tabla `logs_actividad`
 --
 ALTER TABLE `logs_actividad`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+
+--
+-- AUTO_INCREMENT de la tabla `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT de la tabla `sesiones`
@@ -8738,16 +8921,22 @@ ALTER TABLE `sesiones`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `sesiones_activas`
+--
+ALTER TABLE `sesiones_activas`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- Restricciones para tablas volcadas
@@ -8764,6 +8953,23 @@ ALTER TABLE `logs_actividad`
 --
 ALTER TABLE `sesiones`
   ADD CONSTRAINT `sesiones_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `sesiones_activas`
+--
+ALTER TABLE `sesiones_activas`
+  ADD CONSTRAINT `sesiones_activas_ibfk_1` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD CONSTRAINT `usuarios_ibfk_1` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`),
+  ADD CONSTRAINT `usuarios_ibfk_2` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`),
+  ADD CONSTRAINT `usuarios_ibfk_3` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`),
+  ADD CONSTRAINT `usuarios_ibfk_4` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`),
+  ADD CONSTRAINT `usuarios_ibfk_5` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`),
+  ADD CONSTRAINT `usuarios_ibfk_6` FOREIGN KEY (`rol_id`) REFERENCES `roles` (`id`);
 
 --
 -- Filtros para la tabla `ventas`
