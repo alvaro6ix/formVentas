@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-11-2025 a las 23:39:54
+-- Tiempo de generación: 27-11-2025 a las 00:43:55
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -39,6 +39,22 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `generar_folio` (OUT `nuevo_folio` V
 END$$
 
 DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `alertas_sistema`
+--
+
+CREATE TABLE `alertas_sistema` (
+  `id` int(11) NOT NULL,
+  `tipo` varchar(50) NOT NULL,
+  `mensaje` text DEFAULT NULL,
+  `prioridad` enum('baja','media','alta','critica') DEFAULT 'media',
+  `leido` tinyint(1) DEFAULT 0,
+  `fecha_creacion` datetime DEFAULT current_timestamp(),
+  `fecha_lectura` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -8425,6 +8441,106 @@ INSERT INTO `codigos_postales` (`id`, `codigo_postal`, `colonia`, `municipio`, `
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `configuracion_empresa`
+--
+
+CREATE TABLE `configuracion_empresa` (
+  `id` int(11) NOT NULL,
+  `nombre_empresa` varchar(100) DEFAULT 'BGITAL',
+  `direccion` text DEFAULT NULL,
+  `telefono_contacto` varchar(50) DEFAULT NULL,
+  `email_contacto` varchar(100) DEFAULT NULL,
+  `logo_path` varchar(255) DEFAULT 'assets/img-logo/bgital_logo_moderno.png',
+  `iva_porcentaje` decimal(5,2) DEFAULT 16.00,
+  `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `configuracion_empresa`
+--
+
+INSERT INTO `configuracion_empresa` (`id`, `nombre_empresa`, `direccion`, `telefono_contacto`, `email_contacto`, `logo_path`, `iva_porcentaje`, `fecha_actualizacion`) VALUES
+(1, 'BGITAL', 'Av. Ignacio Comonfort 107, Santa Ana Tlapaltitlán, 50160 Santa Ana Tlapaltitlán, Méx.', '7227453989', 'admin@bgital.com', 'assets/img-logo/bgital_logo_moderno.png', 16.00, '2025-11-26 22:40:26');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventario`
+--
+
+CREATE TABLE `inventario` (
+  `id` int(11) NOT NULL,
+  `nombre_material` varchar(100) NOT NULL,
+  `unidad_medida` varchar(20) DEFAULT 'unidad',
+  `cantidad_disponible` int(11) DEFAULT 0,
+  `cantidad_usada` int(11) DEFAULT 0,
+  `cantidad_minima` int(11) DEFAULT 10,
+  `costo_unitario` decimal(10,2) DEFAULT 0.00,
+  `ultima_actualizacion` datetime DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `activo` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `inventario`
+--
+
+INSERT INTO `inventario` (`id`, `nombre_material`, `unidad_medida`, `cantidad_disponible`, `cantidad_usada`, `cantidad_minima`, `costo_unitario`, `ultima_actualizacion`, `activo`) VALUES
+(1, 'Cable Fibra Óptica (m)', 'metros', 5000, 0, 500, 5.50, '2025-11-26 13:21:33', 1),
+(2, 'Cable UTP (m)', 'metros', 3000, 0, 300, 3.00, '2025-11-26 13:21:33', 1),
+(3, 'Conectores RJ45', 'unidad', 1000, 0, 100, 2.50, '2025-11-26 13:21:33', 1),
+(4, 'Conectores Mecánicos', 'unidad', 800, 0, 80, 8.00, '2025-11-26 13:21:33', 1),
+(5, 'Tensores', 'unidad', 500, 0, 50, 12.00, '2025-11-26 13:21:33', 1),
+(6, 'Grapas', 'unidad', 2000, 0, 200, 0.50, '2025-11-26 13:21:33', 1),
+(7, 'Roseta Óptica', 'unidad', 300, 0, 30, 25.00, '2025-11-26 13:21:33', 1),
+(8, 'Patch Cord', 'unidad', 400, 0, 40, 15.00, '2025-11-26 13:21:33', 1),
+(9, 'Fleje', 'metros', 1000, 0, 100, 1.50, '2025-11-26 13:21:33', 1),
+(10, 'Hebillas', 'unidad', 500, 0, 50, 0.80, '2025-11-26 13:21:33', 1);
+
+--
+-- Disparadores `inventario`
+--
+DELIMITER $$
+CREATE TRIGGER `trigger_alerta_inventario_bajo` AFTER UPDATE ON `inventario` FOR EACH ROW BEGIN
+    IF NEW.cantidad_disponible < NEW.cantidad_minima THEN
+        INSERT INTO alertas_sistema (tipo, mensaje, prioridad, fecha_creacion)
+        VALUES (
+            'inventario_bajo',
+            CONCAT('ALERTA: ', NEW.nombre_material, ' tiene solo ', NEW.cantidad_disponible, ' unidades disponibles (mínimo: ', NEW.cantidad_minima, ')'),
+            'alta',
+            NOW()
+        );
+    END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `logs_acciones`
+--
+
+CREATE TABLE `logs_acciones` (
+  `id` int(11) NOT NULL,
+  `usuario_id` int(11) NOT NULL,
+  `accion` varchar(50) NOT NULL,
+  `detalles` text DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `fecha` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `logs_acciones`
+--
+
+INSERT INTO `logs_acciones` (`id`, `usuario_id`, `accion`, `detalles`, `ip_address`, `fecha`) VALUES
+(1, 4, 'NUEVA_VENTA', 'Se creó venta folio BGD-20251126-0001 para ARTURO  HERNANDEZ', '::1', '2025-11-26 23:21:07'),
+(2, 4, 'NUEVA_VENTA', 'Se creó venta folio BGD-20251126-0002 para PATSI HERNANDEZ', '::1', '2025-11-26 23:40:08'),
+(3, 2, 'DESPACHO', 'Se asignó al técnico ID 3 para atender la venta ID 20', '::1', '2025-11-26 23:40:43');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `logs_actividad`
 --
 
@@ -8471,7 +8587,93 @@ INSERT INTO `logs_actividad` (`id`, `usuario_id`, `accion`, `descripcion`, `ip_a
 (26, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0003', NULL, NULL, '2025-11-25 21:59:17'),
 (27, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:11:22'),
 (28, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:11:41'),
-(29, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:12:37');
+(29, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251125-0004', NULL, NULL, '2025-11-25 22:12:37'),
+(30, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 18:52:02'),
+(31, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 18:52:37'),
+(32, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 18:53:24'),
+(33, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 18:59:40'),
+(34, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 18:59:57'),
+(35, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 19:01:00'),
+(36, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0003', NULL, NULL, '2025-11-26 19:31:55'),
+(37, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0003', NULL, NULL, '2025-11-26 19:32:32'),
+(38, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0003', NULL, NULL, '2025-11-26 19:33:38'),
+(39, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0003', NULL, NULL, '2025-11-26 19:34:04'),
+(40, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 19:40:21'),
+(41, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 19:41:35'),
+(42, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 19:42:58'),
+(43, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 20:11:31'),
+(44, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0003', NULL, NULL, '2025-11-26 20:13:06'),
+(45, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0004', NULL, NULL, '2025-11-26 20:27:34'),
+(46, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0004', NULL, NULL, '2025-11-26 20:28:36'),
+(47, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0004', NULL, NULL, '2025-11-26 20:28:54'),
+(48, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 22:43:29'),
+(49, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 22:45:10'),
+(50, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 22:47:56'),
+(51, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 22:51:58'),
+(52, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 22:52:12'),
+(53, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 22:54:08'),
+(54, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 23:21:07'),
+(55, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 23:21:49'),
+(56, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0001', NULL, NULL, '2025-11-26 23:22:46'),
+(57, 4, 'NUEVA_VENTA', 'Se creó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 23:40:08'),
+(58, 4, 'ACTUALIZAR_VENTA', 'Se actualizó la venta con folio: BGD-20251126-0002', NULL, NULL, '2025-11-26 23:40:43');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `log_inventario`
+--
+
+CREATE TABLE `log_inventario` (
+  `id` int(11) NOT NULL,
+  `venta_id` int(11) NOT NULL,
+  `folio` varchar(50) DEFAULT NULL,
+  `tecnico_id` int(11) NOT NULL,
+  `materiales_planificados` text DEFAULT NULL,
+  `materiales_usados` text DEFAULT NULL,
+  `discrepancias` text DEFAULT NULL,
+  `tiene_diferencias` tinyint(1) DEFAULT 0,
+  `fecha_registro` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `log_inventario`
+--
+
+INSERT INTO `log_inventario` (`id`, `venta_id`, `folio`, `tecnico_id`, `materiales_planificados`, `materiales_usados`, `discrepancias`, `tiene_diferencias`, `fecha_registro`) VALUES
+(1, 12, 'BGD-20251126-0003', 3, '[{\"material\":\"Hebillas\",\"cantidad\":\"5\"},{\"material\":\"Roseta Óptica\",\"cantidad\":\"5\"}]', '[{\"material\":\"Tensores\",\"cantidad\":2},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":2}]', '[{\"material\":\"Tensores\",\"planificado\":0,\"usado\":2,\"diferencia\":2,\"tipo\":\"exceso\"},{\"material\":\"Cable Fibra (mts)\",\"planificado\":0,\"usado\":2,\"diferencia\":2,\"tipo\":\"exceso\"},{\"material\":\"Hebillas\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"},{\"material\":\"Roseta Óptica\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 13:33:38'),
+(2, 12, 'BGD-20251126-0003', 3, '[{\"material\":\"Hebillas\",\"cantidad\":\"5\"},{\"material\":\"Roseta Óptica\",\"cantidad\":\"5\"}]', '[{\"material\":\"Tensores\",\"cantidad\":2},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":2}]', '[{\"material\":\"Tensores\",\"planificado\":0,\"usado\":2,\"diferencia\":2,\"tipo\":\"exceso\"},{\"material\":\"Cable Fibra (mts)\",\"planificado\":0,\"usado\":2,\"diferencia\":2,\"tipo\":\"exceso\"},{\"material\":\"Hebillas\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"},{\"material\":\"Roseta Óptica\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 13:34:04'),
+(3, 13, 'BGD-20251126-0001', 3, '[{\"material\":\"Conectores RJ45\",\"cantidad\":\"5\"},{\"material\":\"Cable UTP (m)\",\"cantidad\":\"2\"},{\"material\":\"Tensores\",\"cantidad\":\"3\"}]', '[{\"material\":\"Grapas\",\"cantidad\":11},{\"material\":\"Patch Cord\",\"cantidad\":4}]', '[{\"material\":\"Grapas\",\"planificado\":0,\"usado\":11,\"diferencia\":11,\"tipo\":\"exceso\"},{\"material\":\"Patch Cord\",\"planificado\":0,\"usado\":4,\"diferencia\":4,\"tipo\":\"exceso\"},{\"material\":\"Conectores RJ45\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"},{\"material\":\"Cable UTP (m)\",\"planificado\":2,\"usado\":0,\"diferencia\":-2,\"tipo\":\"no_usado\"},{\"material\":\"Tensores\",\"planificado\":3,\"usado\":0,\"diferencia\":-3,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 13:42:58'),
+(4, 16, 'BGD-20251126-0004', 3, '[{\"material\":\"Cable Fibra Óptica (m)\",\"cantidad\":\"1\"}]', '[{\"material\":\"Cable Fibra (mts)\",\"cantidad\":5}]', '[{\"material\":\"Cable Fibra (mts)\",\"planificado\":0,\"usado\":5,\"diferencia\":5,\"tipo\":\"exceso\"},{\"material\":\"Cable Fibra Óptica (m)\",\"planificado\":1,\"usado\":0,\"diferencia\":-1,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 14:28:54'),
+(5, 17, 'BGD-20251126-0001', 3, '[{\"material\":\"Cable UTP (m)\",\"cantidad\":\"3\"},{\"material\":\"Conectores RJ45\",\"cantidad\":\"5\"}]', '[{\"material\":\"Tensores\",\"cantidad\":5},{\"material\":\"Grapas\",\"cantidad\":20},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":8}]', '[{\"material\":\"Tensores\",\"planificado\":0,\"usado\":5,\"diferencia\":5,\"tipo\":\"exceso\"},{\"material\":\"Grapas\",\"planificado\":0,\"usado\":20,\"diferencia\":20,\"tipo\":\"exceso\"},{\"material\":\"Cable Fibra (mts)\",\"planificado\":0,\"usado\":8,\"diferencia\":8,\"tipo\":\"exceso\"},{\"material\":\"Cable UTP (m)\",\"planificado\":3,\"usado\":0,\"diferencia\":-3,\"tipo\":\"no_usado\"},{\"material\":\"Conectores RJ45\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 16:47:56'),
+(6, 18, 'BGD-20251126-0002', 3, '[{\"material\":\"Cable UTP (m)\",\"cantidad\":\"2\"}]', '[{\"material\":\"Conectores\",\"cantidad\":2},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":23}]', '[{\"material\":\"Conectores\",\"planificado\":0,\"usado\":2,\"diferencia\":2,\"tipo\":\"exceso\"},{\"material\":\"Cable Fibra (mts)\",\"planificado\":0,\"usado\":23,\"diferencia\":23,\"tipo\":\"exceso\"},{\"material\":\"Cable UTP (m)\",\"planificado\":2,\"usado\":0,\"diferencia\":-2,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 16:54:08'),
+(7, 19, 'BGD-20251126-0001', 3, '[{\"material\":\"Cable UTP (m)\",\"cantidad\":\"5\"},{\"material\":\"Tensores\",\"cantidad\":\"2\"}]', '[{\"material\":\"Roseta\",\"cantidad\":10}]', '[{\"material\":\"Roseta\",\"planificado\":0,\"usado\":10,\"diferencia\":10,\"tipo\":\"exceso\"},{\"material\":\"Cable UTP (m)\",\"planificado\":5,\"usado\":0,\"diferencia\":-5,\"tipo\":\"no_usado\"},{\"material\":\"Tensores\",\"planificado\":2,\"usado\":0,\"diferencia\":-2,\"tipo\":\"no_usado\"}]', 1, '2025-11-26 17:22:47');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `planes_internet`
+--
+
+CREATE TABLE `planes_internet` (
+  `id` int(11) NOT NULL,
+  `nombre_plan` varchar(100) NOT NULL,
+  `velocidad_mb` int(11) NOT NULL,
+  `precio` decimal(10,2) NOT NULL,
+  `activo` tinyint(1) DEFAULT 1,
+  `descripcion` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Volcado de datos para la tabla `planes_internet`
+--
+
+INSERT INTO `planes_internet` (`id`, `nombre_plan`, `velocidad_mb`, `precio`, `activo`, `descripcion`) VALUES
+(1, 'Internet 50MB', 50, 350.00, 1, NULL),
+(2, 'Internet 100MB', 100, 450.00, 1, NULL),
+(3, 'Internet 200MB', 200, 550.00, 1, NULL),
+(4, 'Internet 200MB + TV', 200, 650.00, 1, NULL),
+(5, 'Corporativo Simétrico', 500, 1200.00, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -8566,10 +8768,10 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `usuario`, `password`, `nombre_completo`, `email`, `rol`, `activo`, `ultimo_acceso`, `intentos_fallidos`, `bloqueado_hasta`, `fecha_creacion`, `fecha_actualizacion`, `rol_id`, `nombre`, `apellido_paterno`, `apellido_materno`, `telefono`, `avatar`, `bloqueado`, `token_recuperacion`, `token_expiracion`) VALUES
-(1, 'Bgital', '$2y$10$Gd/viYIanjU0obo7ili1V.kKQNzo6nbgxE/ENY6D40k3K9oo1CnQm', 'Administrador Bgital', 'alvaro69@gmail.com', 'admin', 1, '2025-11-25 16:37:24', 0, NULL, '2025-11-24 15:38:03', '2025-11-25 22:37:24', 1, 'Alvaroo', 'Aldama', 'Bautista', '72276345272', 'user_1_1764091863.png', 0, NULL, NULL),
-(2, 'itzel1', '$2y$10$CHOSno/92or.oQHnW63kruLcAXW9YS7ntmRWZw8qHwNj/JY4xF59W', '', 'iztel@gmail.com', 'vendedor', 1, '2025-11-25 16:12:49', 0, NULL, '2025-11-24 19:59:47', '2025-11-25 22:12:49', 3, 'Itzel', 'Martinez', 'Hernandez', '7224859868', 'user_2_1764091873.png', 0, NULL, NULL),
-(3, 'mario1', '$2y$10$czbkt1GFl8x/ylM2tdKSo.SI/O.OnoqN/IeaC6n1jULGR6nRJpWrO', '', 'mario@gmail.com', 'vendedor', 1, '2025-11-25 16:36:36', 0, NULL, '2025-11-24 20:19:22', '2025-11-25 22:36:36', 4, 'Mario', 'Hernandez ', 'Hernandez', '72224575554', 'user_3_1764091886.png', 0, NULL, NULL),
-(4, 'gustavo1', '$2y$10$IXFomXVwGPQk9P05xqf2ZebMxSO/mZhAuFm1TKUnwxboLEBG3F3um', '', 'gus@gmail.com', 'vendedor', 1, '2025-11-25 16:36:42', 0, NULL, '2025-11-24 20:22:17', '2025-11-25 22:36:42', 2, 'Gustavo', 'Hernandez', 'Sanchez', '72276345272', 'user_4_1764091893.jpg', 0, NULL, NULL);
+(1, 'Bgital', '$2y$10$Gd/viYIanjU0obo7ili1V.kKQNzo6nbgxE/ENY6D40k3K9oo1CnQm', 'Administrador Bgital', 'alvaro69@gmail.com', 'admin', 1, '2025-11-26 17:40:48', 0, NULL, '2025-11-24 15:38:03', '2025-11-26 23:40:48', 1, 'Alvaroo', 'Aldama', 'Bautista', '72276345272', 'user_1_1764091863.png', 0, NULL, NULL),
+(2, 'itzel1', '$2y$10$CHOSno/92or.oQHnW63kruLcAXW9YS7ntmRWZw8qHwNj/JY4xF59W', '', 'iztel@gmail.com', 'vendedor', 1, '2025-11-26 17:40:39', 0, NULL, '2025-11-24 19:59:47', '2025-11-26 23:40:39', 3, 'Itzel', 'Martinez', 'Hernandez', '7224859868', 'user_2_1764091873.png', 0, NULL, NULL),
+(3, 'mario1', '$2y$10$czbkt1GFl8x/ylM2tdKSo.SI/O.OnoqN/IeaC6n1jULGR6nRJpWrO', '', 'mario@gmail.com', 'vendedor', 1, '2025-11-26 17:21:52', 0, NULL, '2025-11-24 20:19:22', '2025-11-26 23:21:52', 4, 'Mario', 'Hernandez ', 'Hernandez', '72224575554', 'user_3_1764091886.png', 0, NULL, NULL),
+(4, 'gustavo1', '$2y$10$IXFomXVwGPQk9P05xqf2ZebMxSO/mZhAuFm1TKUnwxboLEBG3F3um', '', 'gus@gmail.com', 'vendedor', 1, '2025-11-26 17:31:55', 0, NULL, '2025-11-24 20:22:17', '2025-11-26 23:31:55', 2, 'Gustavo', 'Hernandez', 'Sanchez', '72276345272', 'user_4_1764091893.jpg', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -8592,6 +8794,7 @@ CREATE TABLE `ventas` (
   `numero_exterior` varchar(20) NOT NULL,
   `colonia` varchar(100) NOT NULL,
   `delegacion_municipio` varchar(100) NOT NULL,
+  `estado` varchar(100) DEFAULT NULL,
   `codigo_postal` varchar(10) NOT NULL,
   `telefono` varchar(20) NOT NULL,
   `celular` varchar(20) DEFAULT NULL,
@@ -8602,12 +8805,15 @@ CREATE TABLE `ventas` (
   `tipo_promocion` varchar(100) DEFAULT NULL,
   `correo_electronico` varchar(100) DEFAULT NULL,
   `identificacion` varchar(50) DEFAULT NULL,
+  `numero_identificacion` varchar(100) DEFAULT NULL,
   `contrato_entregado` tinyint(1) DEFAULT 0,
   `ont_modelo` varchar(100) DEFAULT NULL,
   `ont_serie` varchar(100) DEFAULT NULL,
   `otro_equipo_modelo` varchar(100) DEFAULT NULL,
   `otro_equipo_serie` varchar(100) DEFAULT NULL,
   `materiales_utilizados` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`materiales_utilizados`)),
+  `materiales_tecnicos` text DEFAULT NULL,
+  `discrepancias_materiales` text DEFAULT NULL,
   `notas_instalacion` text DEFAULT NULL,
   `instalador_nombre` varchar(100) DEFAULT NULL,
   `instalador_firma` varchar(255) DEFAULT NULL,
@@ -8642,16 +8848,6 @@ CREATE TABLE `ventas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Volcado de datos para la tabla `ventas`
---
-
-INSERT INTO `ventas` (`id`, `folio`, `usuario_id`, `numero_cuenta`, `fecha_servicio`, `puerto`, `placa`, `tipo_servicio`, `nombre_titular`, `calle`, `numero_interior`, `numero_exterior`, `colonia`, `delegacion_municipio`, `codigo_postal`, `telefono`, `celular`, `tipo_vivienda`, `tipo_vivienda_otro`, `referencias`, `paquete_contratado`, `tipo_promocion`, `correo_electronico`, `identificacion`, `contrato_entregado`, `ont_modelo`, `ont_serie`, `otro_equipo_modelo`, `otro_equipo_serie`, `materiales_utilizados`, `notas_instalacion`, `instalador_nombre`, `instalador_firma`, `instalador_numero`, `eval_servicios_explicados`, `eval_manual_entregado`, `eval_trato_recibido`, `eval_eficiencia`, `pdf_path`, `qr_code_path`, `estatus`, `fecha_creacion`, `fecha_actualizacion`, `asignado_despacho`, `asignado_tecnico`, `fecha_asignacion_despacho`, `fecha_asignacion_tecnico`, `fecha_completada`, `notas_despacho`, `notas_tecnico`, `hora_asignacion`, `hora_llegada`, `hora_inicio_instalacion`, `hora_fin_instalacion`, `evidencia_fotos`, `firma_cliente_final`, `motivo_reagendado`, `fecha_reagendada`, `estado_instalacion`, `tiempo_acumulado`, `ultimo_cambio_estado`) VALUES
-(6, 'BGD-20251125-0001', 4, '123456', '2025-11-25', '123456', '123456', 'instalacion', 'ERIKA BAUTISTA MORA', 'silviano enriquez 204', '203', '204', 'Universidad', 'Toluca', '50130', '123456', '7227453989', 'casa', NULL, 'edificio de uaemex', 'Internet 50MB', '20% de descuento', 'alvaro69@gmail.com', 'RFC AADFDTT666RR6GFG', 1, '123456', '123456', '123456', '123456', '[{\"material\":\"Cable Fibra (mts)\",\"cantidad\":\"2\"}]', 'fue muy facil', 'humberto sanchez', NULL, '123456', 1, 1, 'excelente', 'bueno', NULL, NULL, 'completada', '2025-11-25 17:58:31', '2025-11-25 20:31:03', 2, 3, NULL, '2025-11-25 12:44:05', '2025-11-25 14:31:03', NULL, 'niguhan', NULL, NULL, NULL, NULL, '[\"evidencia_6_69261207f222d.png\"]', NULL, NULL, NULL, 'finalizado', 50411, '2025-11-25 14:19:38'),
-(7, 'BGD-20251125-0002', 4, '2r5235', '2025-11-25', '6566', '567567', 'cambio_domicilio', 'JUAN', 'uiversidad, alvarez', '203', '300b', 'Toluca de Lerdo Centro', 'Toluca', '50000', '123456', '7227453989', 'casa', NULL, 'edificio de 3 pisos', 'Internet 50MB', '20% de descuento', 'humberto@gmail.com', 'INE 15114435516', 1, '123456', '123456', '123456', '123456', '[{\"material\":\"Conectores Mecánicos\",\"cantidad\":\"2\"},{\"material\":\"Tensores\",\"cantidad\":\"2\"}]', 'ninguhna', 'humberto sanchez', NULL, '123456', 1, 1, 'excelente', 'excelente', NULL, NULL, 'completada', '2025-11-25 20:09:17', '2025-11-25 20:34:11', 2, 3, NULL, '2025-11-25 14:09:36', '2025-11-25 14:34:11', NULL, 'todo al 100', NULL, NULL, NULL, NULL, '[\"evidencia_7_692612c3cfb06.png\"]', NULL, NULL, NULL, 'finalizado', 0, '2025-11-25 14:33:42'),
-(8, 'BGD-20251125-0003', 4, '155511', '2025-11-25', '515156', '51515', 'cambio_domicilio', 'RENATA', 'cipres', '01', '200', 'Ciprés', 'Toluca', '50120', '72151121', '72245484848', 'casa', NULL, 'casa', 'Internet 50MB', '20% de descuento', 'ren@gmail.com', 'INE 2151f51we561w', 1, '123456', '1512ded', 'jjhjhjg', '123456', '[{\"material\":\"Tensores\",\"cantidad\":\"5\"},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":\"5\"}]', 'ninkngngnjk', 'humberto sanchez', NULL, '123456', 1, 1, 'excelente', 'excelente', NULL, NULL, 'completada', '2025-11-25 21:58:06', '2025-11-25 21:59:17', 2, 3, NULL, '2025-11-25 15:58:30', '2025-11-25 15:59:17', NULL, 'niguna ', NULL, NULL, NULL, NULL, '[\"evidencia_8_692626b54fe1d.jpg\"]', NULL, NULL, NULL, 'finalizado', 0, '2025-11-25 15:58:50'),
-(9, 'BGD-20251125-0004', 4, '5y45', '2025-11-25', '235345', '4353', 'instalacion', 'HUMBERTO MARTINEZ GIMENEZ ', 'uiversidad, alvarez', '203', '300b', 'Universidad', 'Toluca', '50130', '473583', '5387365436', 'casa', NULL, 'edificio de 3 pisos', 'Internet 50MB', '20% de descuento', 'humberto@gmail.com', 'RFC 563543543873', 1, 'nfuh2727', '123456', '1265ew', '123456', '[{\"material\":\"Tensores\",\"cantidad\":\"5445\"},{\"material\":\"Cable Fibra (mts)\",\"cantidad\":\"5\"}]', 'tyjtyjyf', 'carlos ivan ', NULL, '123456', 1, 1, 'excelente', 'bueno', NULL, NULL, 'completada', '2025-11-25 22:11:22', '2025-11-25 22:12:37', 2, 3, NULL, '2025-11-25 16:11:41', '2025-11-25 16:12:37', NULL, 'yjyujkyuf', NULL, NULL, NULL, NULL, '[\"evidencia_9_692629d5665c3.png\",\"evidencia_9_692629d566a0f.jpg\"]', NULL, NULL, NULL, 'finalizado', 0, '2025-11-25 16:11:41');
-
---
 -- Disparadores `ventas`
 --
 DELIMITER $$
@@ -8668,6 +8864,24 @@ CREATE TRIGGER `after_venta_update` AFTER UPDATE ON `ventas` FOR EACH ROW BEGIN
 END
 $$
 DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `vista_discrepancias_inventario`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `vista_discrepancias_inventario` (
+`id` int(11)
+,`folio` varchar(50)
+,`fecha_registro` datetime
+,`tecnico_nombre` varchar(100)
+,`tiene_diferencias` tinyint(1)
+,`discrepancias` text
+,`cliente` varchar(150)
+,`paquete_contratado` varchar(100)
+,`estado_auditoria` varchar(15)
+);
 
 -- --------------------------------------------------------
 
@@ -8698,6 +8912,21 @@ CREATE TABLE `vista_estadisticas_ventas` (
 ,`ventas_completadas` decimal(22,0)
 ,`ventas_canceladas` decimal(22,0)
 ,`usuario_id` int(11)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `vista_inventario_bajo`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `vista_inventario_bajo` (
+`id` int(11)
+,`nombre_material` varchar(100)
+,`cantidad_disponible` int(11)
+,`cantidad_minima` int(11)
+,`cantidad_a_reponer` bigint(12)
+,`costo_reposicion` varchar(30)
 );
 
 -- --------------------------------------------------------
@@ -8782,6 +9011,15 @@ CREATE TABLE `vista_ventas_detalle` (
 -- --------------------------------------------------------
 
 --
+-- Estructura para la vista `vista_discrepancias_inventario`
+--
+DROP TABLE IF EXISTS `vista_discrepancias_inventario`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_discrepancias_inventario`  AS SELECT `l`.`id` AS `id`, `l`.`folio` AS `folio`, `l`.`fecha_registro` AS `fecha_registro`, `u`.`nombre` AS `tecnico_nombre`, `l`.`tiene_diferencias` AS `tiene_diferencias`, `l`.`discrepancias` AS `discrepancias`, `v`.`nombre_titular` AS `cliente`, `v`.`paquete_contratado` AS `paquete_contratado`, CASE WHEN `l`.`tiene_diferencias` = 1 THEN 'Con Diferencias' ELSE 'Sin Diferencias' END AS `estado_auditoria` FROM ((`log_inventario` `l` left join `usuarios` `u` on(`l`.`tecnico_id` = `u`.`id`)) left join `ventas` `v` on(`l`.`venta_id` = `v`.`id`)) ORDER BY `l`.`fecha_registro` DESC ;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura para la vista `vista_estadisticas_vendedor`
 --
 DROP TABLE IF EXISTS `vista_estadisticas_vendedor`;
@@ -8796,6 +9034,15 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `vista_estadisticas_ventas`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_estadisticas_ventas`  AS SELECT cast(`ventas`.`fecha_creacion` as date) AS `fecha`, count(0) AS `total_ventas`, sum(case when `ventas`.`estatus` = 'activa' then 1 else 0 end) AS `ventas_activas`, sum(case when `ventas`.`estatus` = 'completada' then 1 else 0 end) AS `ventas_completadas`, sum(case when `ventas`.`estatus` = 'cancelada' then 1 else 0 end) AS `ventas_canceladas`, `ventas`.`usuario_id` AS `usuario_id` FROM `ventas` GROUP BY cast(`ventas`.`fecha_creacion` as date), `ventas`.`usuario_id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `vista_inventario_bajo`
+--
+DROP TABLE IF EXISTS `vista_inventario_bajo`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vista_inventario_bajo`  AS SELECT `inventario`.`id` AS `id`, `inventario`.`nombre_material` AS `nombre_material`, `inventario`.`cantidad_disponible` AS `cantidad_disponible`, `inventario`.`cantidad_minima` AS `cantidad_minima`, `inventario`.`cantidad_minima`- `inventario`.`cantidad_disponible` AS `cantidad_a_reponer`, concat('$',format(`inventario`.`costo_unitario` * (`inventario`.`cantidad_minima` - `inventario`.`cantidad_disponible`),2)) AS `costo_reposicion` FROM `inventario` WHERE `inventario`.`cantidad_disponible` < `inventario`.`cantidad_minima` AND `inventario`.`activo` = 1 ORDER BY `inventario`.`cantidad_minima`- `inventario`.`cantidad_disponible` DESC ;
 
 -- --------------------------------------------------------
 
@@ -8820,6 +9067,15 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 
 --
+-- Indices de la tabla `alertas_sistema`
+--
+ALTER TABLE `alertas_sistema`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_tipo` (`tipo`),
+  ADD KEY `idx_prioridad` (`prioridad`),
+  ADD KEY `idx_leido` (`leido`);
+
+--
 -- Indices de la tabla `codigos_postales`
 --
 ALTER TABLE `codigos_postales`
@@ -8828,12 +9084,49 @@ ALTER TABLE `codigos_postales`
 ALTER TABLE `codigos_postales` ADD FULLTEXT KEY `idx_fulltext_colonia` (`colonia`);
 
 --
+-- Indices de la tabla `configuracion_empresa`
+--
+ALTER TABLE `configuracion_empresa`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `inventario`
+--
+ALTER TABLE `inventario`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `nombre_material` (`nombre_material`),
+  ADD KEY `idx_material` (`nombre_material`),
+  ADD KEY `idx_disponible` (`cantidad_disponible`);
+
+--
+-- Indices de la tabla `logs_acciones`
+--
+ALTER TABLE `logs_acciones`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `logs_actividad`
 --
 ALTER TABLE `logs_actividad`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_usuario` (`usuario_id`),
   ADD KEY `idx_fecha` (`fecha_hora`);
+
+--
+-- Indices de la tabla `log_inventario`
+--
+ALTER TABLE `log_inventario`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_venta` (`venta_id`),
+  ADD KEY `idx_tecnico` (`tecnico_id`),
+  ADD KEY `idx_fecha` (`fecha_registro`),
+  ADD KEY `idx_discrepancias` (`tiene_diferencias`);
+
+--
+-- Indices de la tabla `planes_internet`
+--
+ALTER TABLE `planes_internet`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `roles`
@@ -8897,16 +9190,52 @@ ALTER TABLE `ventas` ADD FULLTEXT KEY `idx_fulltext_titular` (`nombre_titular`,`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `alertas_sistema`
+--
+ALTER TABLE `alertas_sistema`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `codigos_postales`
 --
 ALTER TABLE `codigos_postales`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8350;
 
 --
+-- AUTO_INCREMENT de la tabla `configuracion_empresa`
+--
+ALTER TABLE `configuracion_empresa`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT de la tabla `inventario`
+--
+ALTER TABLE `inventario`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT de la tabla `logs_acciones`
+--
+ALTER TABLE `logs_acciones`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT de la tabla `logs_actividad`
 --
 ALTER TABLE `logs_actividad`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+
+--
+-- AUTO_INCREMENT de la tabla `log_inventario`
+--
+ALTER TABLE `log_inventario`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `planes_internet`
+--
+ALTER TABLE `planes_internet`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -8936,7 +9265,7 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `ventas`
 --
 ALTER TABLE `ventas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Restricciones para tablas volcadas
