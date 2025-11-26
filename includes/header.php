@@ -102,9 +102,8 @@ $avatar_error = $ruta_assets . 'assets/img/avatars/default.png';
                     <div class="menu-section-label text-warning">Administración</div>
                     <a href="<?php echo $ruta_admin; ?>gestionar-usuarios.php" class="nav-link"><i class="fas fa-users-cog"></i> Usuarios</a>
                     <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link"><i class="fas fa-list-alt"></i> Todas las Ventas</a>
-                    <a href="#" class="nav-link"><i class="fas fa-chart-pie"></i> Reportes</a>
-                    <a href="#" class="nav-link"><i class="fas fa-cogs"></i> Configuración</a>
-                    <a href="#" class="nav-link"><i class="fas fa-shield-alt"></i> Logs</a>
+                    <a href="<?php echo $ruta_modules; ?>configuracion.php" class="nav-link"><i class="fas fa-cogs"></i> Configuración</a>
+                    <a href="<?php echo $ruta_modules; ?>logs.php" class="nav-link"><i class="fas fa-shield-alt"></i> Logs Auditoría</a>
                 <?php break; ?>
 
                 <?php case 2: // VENTAS ?>

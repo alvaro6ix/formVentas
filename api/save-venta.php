@@ -4,6 +4,7 @@ session_start();
 
 // Ajusta la ruta si tu archivo config está en otro nivel
 require_once '../config/database.php';
+require_once '../includes/functions.php'; // 1. Esto ya lo tenías, es correcto
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
     try {
@@ -18,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
         $sql = "INSERT INTO ventas (
             folio, usuario_id, numero_cuenta, fecha_servicio, puerto, placa,
             tipo_servicio, nombre_titular, calle, numero_interior, numero_exterior,
-            colonia, delegacion_municipio, codigo_postal, telefono, celular,
+            colonia, delegacion_municipio, estado, codigo_postal, telefono, celular,
             tipo_vivienda, referencias, paquete_contratado, tipo_promocion,
-            correo_electronico, identificacion, contrato_entregado,
+            correo_electronico, identificacion, numero_identificacion, contrato_entregado,
             ont_modelo, ont_serie, otro_equipo_modelo, otro_equipo_serie,
             notas_instalacion, instalador_nombre, instalador_numero, 
             eval_servicios_explicados, eval_manual_entregado, eval_trato_recibido, eval_eficiencia,
@@ -28,9 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
         ) VALUES (
             :folio, :uid, :num_cuenta, :fs, :puerto, :placa,
             :ts, :nom, :calle, :ni, :ne,
-            :col, :mun, :cp, :tel, :cel,
+            :col, :mun, :est, :cp, :tel, :cel,
             :tv, :ref, :pc, :promo,
-            :email, :ident, :contrato,
+            :email, :ident, :num_ident, :contrato,
             :ontm, :onts, :otrom, :otros,
             :notas, :inst_nom, :inst_num,
             :ev_serv, :ev_man, :ev_trato, :ev_efi,
@@ -39,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
 
         $stmt = $db->prepare($sql);
         
-        // Ejecución con mapeo de todos los datos
+        // Ejecución con mapeo
         $stmt->execute([
             ':folio'       => $folio,
             ':uid'         => $_SESSION['user_id'],
@@ -54,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
             ':ne'          => $_POST['numero_exterior'],
             ':col'         => $_POST['colonia'],
             ':mun'         => $_POST['delegacion_municipio'],
+            ':est'         => $_POST['estado'] ?? '', 
             ':cp'          => $_POST['codigo_postal'],
             ':tel'         => $_POST['telefono'],
             ':cel'         => $_POST['celular'] ?? '',
@@ -62,29 +64,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id'])) {
             ':pc'          => $_POST['paquete_contratado'],
             ':promo'       => $_POST['tipo_promocion'] ?? '',
             ':email'       => $_POST['correo_electronico'] ?? '',
-            ':ident' => ($_POST['identificacion'] ?? '') . ' ' . ($_POST['numero_identificacion'] ?? ''),
+            ':ident'       => $_POST['identificacion'] ?? '', 
+            ':num_ident'   => $_POST['numero_identificacion'] ?? '',
             ':contrato'    => isset($_POST['contrato_entregado']) ? 1 : 0,
-            
-            // Equipos
             ':ontm'        => $_POST['ont_modelo'] ?? '',
             ':onts'        => $_POST['ont_serie'] ?? '',
             ':otrom'       => $_POST['otro_equipo_modelo'] ?? '',
             ':otros'       => $_POST['otro_equipo_serie'] ?? '',
-            
-            // Instalador y Notas
             ':notas'       => $_POST['notas_instalacion'] ?? '',
             ':inst_nom'    => $_POST['instalador_nombre'] ?? '',
             ':inst_num'    => $_POST['instalador_numero'] ?? '',
-            
-            // Evaluación (Agregué estos campos que faltaban en tu insert anterior)
             ':ev_serv'     => $_POST['eval_servicios_explicados'] ?? null,
             ':ev_man'      => $_POST['eval_manual_entregado'] ?? null,
             ':ev_trato'    => $_POST['eval_trato_recibido'] ?? null,
             ':ev_efi'      => $_POST['eval_eficiencia'] ?? null,
-
-            // MATERIALES (Aquí recibimos el JSON del JS)
             ':materiales'  => $_POST['materiales_utilizados'] ?? '[]'
         ]);
+
+        // ======================================================
+        // 2. AQUÍ ESTÁ EL CAMBIO IMPORTANTE: REGISTRO DEL LOG
+        // ======================================================
+        // Solo llegamos aquí si el execute funcionó (si falla, salta al catch)
+        registrarLog($db, 'NUEVA_VENTA', "Se creó venta folio $folio para " . strtoupper($_POST['nombre_titular']));
 
         echo json_encode(['success' => true, 'folio' => $folio, 'id' => $db->lastInsertId()]);
 

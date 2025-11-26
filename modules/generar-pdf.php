@@ -13,6 +13,19 @@ $v = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$v) die("Venta no encontrada");
 
+// ==========================================================
+// MODIFICACIÓN A: OBTENER DATOS DE LA EMPRESA (CONFIGURACIÓN)
+// ==========================================================
+$stmtEmpresa = $db->query("SELECT * FROM configuracion_empresa LIMIT 1");
+$empresa = $stmtEmpresa->fetch(PDO::FETCH_ASSOC);
+
+// Variables globales para usar dentro de la clase PDF
+$emp_nombre = $empresa['nombre_empresa'] ?? 'BGITAL TELECOMUNICACIONES';
+$emp_dir    = $empresa['direccion'] ?? 'Dirección no configurada';
+$emp_tel    = $empresa['telefono_contacto'] ?? '';
+$emp_logo   = $empresa['logo_path'] ?? 'assets/img-logo/bgital_logo_moderno.png';
+// ==========================================================
+
 // 1. GENERAR QR
 $tempDir = '../assets/img/temp/';
 if (!file_exists($tempDir)) mkdir($tempDir, 0777, true);
@@ -22,26 +35,63 @@ QRcode::png($qrContent, $qrFile, QR_ECLEVEL_L, 3);
 
 // 2. CLASE PDF
 class PDF extends FPDF {
+    
+    // ==========================================================
+    // MODIFICACIÓN B: HEADER DINÁMICO
+    // ==========================================================
     function Header() {
-        // Ajusta esta ruta si es necesario, preferiblemente usa ruta relativa
-        $logoPath = '../assets/img-logo/bgital_logo_moderno.png'; 
-        if(file_exists($logoPath)) $this->Image($logoPath, 10, 10, 40);
+        // Traemos las variables de la empresa usando 'global'
+        global $emp_nombre, $emp_dir, $emp_tel, $emp_logo; 
         
-        $this->SetFont('Arial', 'B', 16);
+        // 1. LOGO DINÁMICO
+        // La ruta viene de la BD (ej: assets/img/logo.png), le agregamos '../' porque estamos en modules/
+        $logoPath = '../' . $emp_logo; 
+        
+        // Verificamos si existe la imagen, si no, no la ponemos para evitar error
+        if(file_exists($logoPath)) {
+            $this->Image($logoPath, 10, 10, 35); 
+        }
+        
+        // 2. DATOS DE LA EMPRESA (Alineados a la derecha)
+        $this->SetFont('Arial', 'B', 14);
         $this->SetTextColor(0, 51, 102);
-        $this->Cell(0, 10, utf8_decode('ORDEN DE SERVICIO BGITAL'), 0, 1, 'C');
         
-        $this->SetDrawColor(0, 212, 255);
+        // Mover cursor a la derecha para el título (X=50, Y=10)
+        $this->SetXY(50, 10); 
+        $this->Cell(0, 6, utf8_decode($emp_nombre), 0, 1, 'R');
+        
+        $this->SetFont('Arial', '', 8);
+        $this->SetTextColor(80); // Color gris oscuro
+        
+        // Dirección
+        $this->SetX(50);
+        $this->Cell(0, 4, utf8_decode($emp_dir), 0, 1, 'R');
+        
+        // Teléfono (si existe)
+        if($emp_tel) {
+            $this->SetX(50);
+            $this->Cell(0, 4, utf8_decode('Tel: ' . $emp_tel), 0, 1, 'R');
+        }
+        
+        // Título del Documento y Línea divisoria
+        $this->Ln(8); // Salto de línea
+        $this->SetFont('Arial', 'B', 12);
+        $this->SetTextColor(0);
+        $this->Cell(0, 10, utf8_decode('ORDEN DE SERVICIO Y CONTRATO'), 0, 1, 'C');
+        
+        $this->SetDrawColor(0, 51, 102);
         $this->SetLineWidth(0.5);
-        $this->Line(10, 30, 200, 30);
-        $this->Ln(15);
+        $this->Line(10, 42, 200, 42); // Línea horizontal azul
+        $this->Ln(5);
     }
+    // ==========================================================
 
     function Footer() {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
         $this->SetTextColor(128);
-        $this->Cell(0, 10, 'Pagina ' . $this->PageNo() . ' - BDIGITAL TELECOMUNICACIONES - ' . date('d/m/Y H:i'), 0, 0, 'C');
+        global $emp_nombre; // Usamos el nombre de la empresa también en el footer
+        $this->Cell(0, 10, 'Pagina ' . $this->PageNo() . ' - ' . utf8_decode($emp_nombre) . ' - ' . date('d/m/Y H:i'), 0, 0, 'C');
     }
     
     function SectionTitle($title) {
@@ -59,7 +109,7 @@ class PDF extends FPDF {
         $this->SetFont('Arial', 'B', 9);
         $this->Cell($width, 5, utf8_decode($label), 0);
         $this->SetFont('Arial', '', 9);
-        $this->Cell(0, 5, utf8_decode($value), 0, 1);
+        $this->Cell(0, 5, utf8_decode($value ?: 'No especificado'), 0, 1);
     }
 
     function TableHeader($headers) {
@@ -87,25 +137,33 @@ $pdf->AliasNbPages();
 $pdf->AddPage();
 
 // ==========================================================
-// PARTE 1: CONTRATO DE VENTA (Diseño Original)
+// INFORMACIÓN GENERAL
 // ==========================================================
-
-$pdf->Image($qrFile, 165, 32, 25, 25);
+$pdf->Image($qrFile, 165, 45, 25, 25); // Ajusté un poco la posición Y del QR
 $pdf->SetFont('Arial', 'B', 10);
 $pdf->Cell(95, 6, 'FOLIO: ' . $v['folio'], 0, 1);
-$pdf->Cell(95, 6, 'FECHA: ' . date('d/m/Y', strtotime($v['fecha_servicio'])), 0, 1);
+$pdf->Cell(95, 6, 'FECHA SERVICIO: ' . date('d/m/Y', strtotime($v['fecha_servicio'])), 0, 1);
 $pdf->Cell(95, 6, 'TIPO SERVICIO: ' . strtoupper($v['tipo_servicio']), 0, 1);
 $pdf->Cell(95, 6, 'ESTATUS: ' . strtoupper($v['estatus']), 0, 1);
 $pdf->Ln(5);
 
-// TITULAR
+// ==========================================================
+// DATOS DEL TITULAR
+// ==========================================================
 $pdf->SectionTitle('Información del Titular');
 $pdf->InfoRow('Nombre Completo:', $v['nombre_titular']);
-$pdf->InfoRow('Dirección:', $v['calle'] . ' #' . $v['numero_exterior'] . ($v['numero_interior'] ? ' Int. ' . $v['numero_interior'] : ''));
-$pdf->InfoRow('Ubicación:', $v['colonia'] . ', ' . $v['delegacion_municipio'] . ' CP: ' . $v['codigo_postal']);
-$pdf->InfoRow('Teléfonos:', $v['telefono'] . ($v['celular'] ? ' / ' . $v['celular'] : ''));
-$pdf->InfoRow('Correo Electrónico:', $v['correo_electronico'] ?: 'No registrado');
-$pdf->InfoRow('Tipo de Vivienda:', ucfirst($v['tipo_vivienda']));
+$pdf->InfoRow('Dirección Completa:', $v['calle'] . ' #' . $v['numero_exterior'] . 
+    ($v['numero_interior'] ? ' Int. ' . $v['numero_interior'] : ''));
+$pdf->InfoRow('Colonia:', $v['colonia']);
+$pdf->InfoRow('Municipio/Delegación:', $v['delegacion_municipio']);
+$pdf->InfoRow('Estado:', $v['estado']);
+$pdf->InfoRow('Código Postal:', $v['codigo_postal']);
+$pdf->InfoRow('Teléfono Casa:', $v['telefono']);
+$pdf->InfoRow('Celular:', $v['celular']);
+$pdf->InfoRow('Correo Electrónico:', $v['correo_electronico']);
+$pdf->InfoRow('Tipo de Vivienda:', ucfirst($v['tipo_vivienda']) . 
+    ($v['tipo_vivienda_otro'] ? ' - ' . $v['tipo_vivienda_otro'] : ''));
+
 if($v['referencias']) {
     $pdf->SetFont('Arial', 'B', 9);
     $pdf->Cell(50, 6, 'Referencias:', 0, 0);
@@ -113,68 +171,87 @@ if($v['referencias']) {
     $pdf->MultiCell(0, 6, utf8_decode($v['referencias']));
 }
 
-// SERVICIO
+// ==========================================================
+// SERVICIO CONTRATADO
+// ==========================================================
 $pdf->SectionTitle('Servicio Contratado');
-$pdf->InfoRow('Paquete:', $v['paquete_contratado']);
-if($v['numero_cuenta']) $pdf->InfoRow('No. Cuenta:', $v['numero_cuenta']);
-if($v['puerto']) $pdf->InfoRow('Puerto:', $v['puerto']);
-if($v['placa']) $pdf->InfoRow('Placa:', $v['placa']);
-
-$pdf->InfoRow('Identificación:', $v['identificacion'] ?: 'No especificada');
+$pdf->InfoRow('Paquete Contratado:', $v['paquete_contratado']);
+$pdf->InfoRow('Tipo de Promoción:', $v['tipo_promocion']);
+$pdf->InfoRow('Número de Cuenta:', $v['numero_cuenta']);
+$pdf->InfoRow('Puerto:', $v['puerto']);
+$pdf->InfoRow('Placa:', $v['placa']);
+$pdf->InfoRow('Tipo de Identificación:', $v['identificacion']);
+$pdf->InfoRow('Número de Identificación:', $v['numero_identificacion']);
 $pdf->InfoRow('Contrato Entregado:', $v['contrato_entregado'] ? 'SI' : 'NO');
 
-// EQUIPOS
-$pdf->SectionTitle('Equipos Asignados Inicialmente');
-$headers = [['EQUIPO', 50], ['MODELO', 50], ['SERIE / MAC', 50], ['OBSERVACIONES', 40]];
+// ==========================================================
+// EQUIPOS INSTALADOS
+// ==========================================================
+$pdf->SectionTitle('Equipos Instalados');
+$headers = [['TIPO', 40], ['MODELO', 60], ['SERIE / MAC', 60], ['ESTADO', 30]];
 $pdf->TableHeader($headers);
+
 $equipos = [
-    [['ONT', 50], [$v['ont_modelo'] ?: 'N/A', 50], [$v['ont_serie'] ?: 'N/A', 50], ['Principal', 40]],
-    [['OTRO', 50], [$v['otro_equipo_modelo'] ?: 'N/A', 50], [$v['otro_equipo_serie'] ?: 'N/A', 50], ['Adicional', 40]]
+    [['ONT', 40], [$v['ont_modelo'] ?: 'N/A', 60], [$v['ont_serie'] ?: 'N/A', 60], ['Principal', 30]],
+    [['OTRO EQUIPO', 40], [$v['otro_equipo_modelo'] ?: 'N/A', 60], [$v['otro_equipo_serie'] ?: 'N/A', 60], ['Adicional', 30]]
 ];
+
 foreach($equipos as $equipo) {
     $pdf->TableRow($equipo);
 }
-$pdf->Ln(3);
+$pdf->Ln(5);
 
-// NOTAS Y LEGAL
-$pdf->SectionTitle('Notas de Instalación');
-$pdf->SetFont('Arial', '', 9);
-$notas_legales = [
-    "Es responsabilidad del contratante obtener los permisos necesarios.",
-    "El cliente asignará a un mayor de 18 años para aprobar instalación.",
-    "Servicio sujeto a cobertura.",
-    "No incluye cableado telefónico o red de datos."
-];
-foreach ($notas_legales as $nota) {
-    $pdf->SetX(15);
-    $pdf->Cell(5, 5, chr(149), 0, 0);
-    $pdf->MultiCell(170, 5, utf8_decode($nota));
-}
-if($v['notas_instalacion']) {
-    $pdf->Ln(2);
+// ==========================================================
+// MATERIALES UTILIZADOS EN VENTA
+// ==========================================================
+if(!empty($v['materiales_utilizados']) && $v['materiales_utilizados'] != '[]') {
+    $pdf->SectionTitle('Materiales Utilizados (Planificados)');
+    
+    $materiales_venta = json_decode($v['materiales_utilizados'], true);
+    
+    $pdf->SetFillColor(240, 240, 240);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Write(5, "Observaciones: ");
+    $pdf->Cell(140, 7, utf8_decode('MATERIAL'), 1, 0, 'L', true);
+    $pdf->Cell(50, 7, utf8_decode('CANTIDAD'), 1, 1, 'C', true);
     $pdf->SetFont('Arial', '', 9);
-    $pdf->MultiCell(0, 5, utf8_decode($v['notas_instalacion']));
+
+    foreach($materiales_venta as $mat) {
+        $nombre = is_array($mat) ? ($mat['material'] ?? 'N/A') : 'N/A';
+        $cant = is_array($mat) ? ($mat['cantidad'] ?? '0') : '0';
+        
+        $pdf->Cell(140, 6, utf8_decode($nombre), 1);
+        $pdf->Cell(50, 6, $cant, 1, 1, 'C');
+    }
+    $pdf->Ln(3);
 }
 
-// Forzar nueva página si falta espacio para firmas
-if($pdf->GetY() > 220) $pdf->AddPage();
+// ==========================================================
+// NOTAS DE INSTALACIÓN
+// ==========================================================
+if($v['notas_instalacion']) {
+    $pdf->SectionTitle('Notas de Instalación');
+    $pdf->SetFont('Arial', '', 9);
+    $pdf->MultiCell(0, 5, utf8_decode($v['notas_instalacion']), 1, 'L');
+    $pdf->Ln(3);
+}
 
-$pdf->SectionTitle('Términos de Conformidad');
-$pdf->SetFont('Arial', '', 8);
-$texto_legal = "Por medio de la presente manifiesto de conformidad que las actividades de instalación del Servicio Bdigital en mi domicilio son de mi entera satisfacción, adicional manifiesto que de forma enunciativa más no limitativa los equipos, computadora, instalación eléctrica, así como el mobiliario de mi propiedad, se encuentran en buen estado sin sufrir alteración alguna.";
-$pdf->MultiCell(0, 4, utf8_decode($texto_legal), 0, 'J');
-$pdf->Ln(3);
+// ==========================================================
+// DATOS DEL INSTALADOR
+// ==========================================================
+$pdf->SectionTitle('Datos del Instalador/Técnico');
+$pdf->InfoRow('Nombre del Instalador:', $v['instalador_nombre']);
+$pdf->InfoRow('Número del Instalador:', $v['instalador_numero']);
 
-$pdf->Write(5, utf8_decode("El titular "));
-$pdf->SetFont('Arial', 'B', 8);
-$pdf->Write(5, utf8_decode(strtoupper($v['nombre_titular'])));
-$pdf->SetFont('Arial', '', 8);
-$pdf->Write(5, utf8_decode(" manifiesta de acuerdo en la instalación de cables, extensiones, decodificadores y demás accesorios."));
-$pdf->Ln(6);
+if($v['fecha_asignacion_tecnico']) {
+    $pdf->InfoRow('Fecha Asignación:', date('d/m/Y H:i', strtotime($v['fecha_asignacion_tecnico'])));
+}
+if($v['fecha_completada']) {
+    $pdf->InfoRow('Fecha Completada:', date('d/m/Y H:i', strtotime($v['fecha_completada'])));
+}
 
+// ==========================================================
 // EVALUACIÓN DEL SERVICIO
+// ==========================================================
 if($v['eval_servicios_explicados'] !== null) {
     if($pdf->GetY() > 210) $pdf->AddPage();
     
@@ -198,18 +275,20 @@ if($v['eval_servicios_explicados'] !== null) {
     
     $pdf->Ln(3);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Cell(0, 6, utf8_decode('3. Calificación del servicio recibido:'), 0, 1);
+    $pdf->Cell(0, 6, utf8_decode('3. Trato recibido:'), 0, 1);
     
-    // Botones de colores simulados
-    function drawColorRating($pdf, $titulo, $valor_bd) {
+    function drawColorRating($pdf, $valor_bd, $titulo) {
         $opciones = [
-            'excelente' => ['r'=>46,  'g'=>204, 'b'=>113], 
-            'bueno'     => ['r'=>52,  'g'=>152, 'b'=>219],
-            'regular'   => ['r'=>243, 'g'=>156, 'b'=>18],
-            'malo'      => ['r'=>231, 'g'=>76,  'b'=>60]
+            'excelente' => ['r'=>46,  'g'=>204, 'b'=>113, 'label'=>'Excelente'], 
+            'bueno'     => ['r'=>52,  'g'=>152, 'b'=>219, 'label'=>'Bueno'],
+            'regular'   => ['r'=>243, 'g'=>156, 'b'=>18,  'label'=>'Regular'],
+            'malo'      => ['r'=>231, 'g'=>76,  'b'=>60,  'label'=>'Malo']
         ];
         $anchoBtn = 30;
-        $pdf->SetX(25);
+        
+        $pdf->SetFont('Arial', 'B', 8);
+        $pdf->Cell(40, 6, utf8_decode($titulo), 0, 0);
+        
         foreach($opciones as $nombre => $color) {
             $seleccionado = (strtolower($valor_bd) == $nombre);
             if($seleccionado) {
@@ -221,18 +300,55 @@ if($v['eval_servicios_explicados'] !== null) {
                 $pdf->SetTextColor(150);
                 $pdf->SetDrawColor(200);
             }
-            $pdf->Cell($anchoBtn, 7, strtoupper($nombre), 1, 0, 'C', true);
+            $pdf->Cell($anchoBtn, 6, utf8_decode($color['label']), 1, 0, 'C', true);
             $pdf->SetX($pdf->GetX() + 2);
         }
         $pdf->SetTextColor(0);
         $pdf->SetDrawColor(0);
-        $pdf->Ln(10);
+        $pdf->Ln(8);
     }
-    drawColorRating($pdf, '', $v['eval_trato_recibido']);
+    
+    drawColorRating($pdf, $v['eval_trato_recibido'], 'Trato recibido:');
+    drawColorRating($pdf, $v['eval_eficiencia'], 'Eficiencia:');
 }
 
-// FIRMAS PAGINA 1
-$pdf->SetY(-40);
+// ==========================================================
+// TÉRMINOS LEGALES
+// ==========================================================
+if($pdf->GetY() > 220) $pdf->AddPage();
+
+$pdf->SectionTitle('Términos y Condiciones');
+$pdf->SetFont('Arial', '', 8);
+$notas_legales = [
+    "Es responsabilidad del contratante obtener los permisos necesarios para la instalación.",
+    "El cliente asignará a un mayor de 18 años para aprobar la instalación.",
+    "El servicio está sujeto a disponibilidad de cobertura en la zona.",
+    "No incluye cableado telefónico o red de datos interna.",
+    "Los equipos instalados quedan en custodia del cliente.",
+    "El cliente se compromete a mantener los equipos en buen estado."
+];
+
+foreach ($notas_legales as $nota) {
+    $pdf->SetX(15);
+    $pdf->Cell(5, 5, chr(149), 0, 0);
+    $pdf->MultiCell(170, 5, utf8_decode($nota));
+}
+
+$pdf->Ln(5);
+$pdf->SetFont('Arial', '', 8);
+$texto_legal = "Por medio de la presente manifiesto de conformidad que las actividades de instalación del Servicio en mi domicilio son de mi entera satisfacción. Adicional manifiesto que de forma enunciativa más no limitativa, los equipos, computadora, instalación eléctrica, así como el mobiliario de mi propiedad, se encuentran en buen estado sin sufrir alteración alguna.";
+$pdf->MultiCell(0, 4, utf8_decode($texto_legal), 0, 'J');
+$pdf->Ln(3);
+
+$pdf->Write(5, utf8_decode("El titular "));
+$pdf->SetFont('Arial', 'B', 8);
+$pdf->Write(5, utf8_decode(strtoupper($v['nombre_titular'])));
+$pdf->SetFont('Arial', '', 8);
+$pdf->Write(5, utf8_decode(" manifiesta estar de acuerdo con la instalación de cables, extensiones, decodificadores y demás accesorios necesarios para la prestación del servicio."));
+$pdf->Ln(6);
+
+// FIRMAS PÁGINA 1
+$pdf->SetY(-45);
 $pdf->SetDrawColor(0);
 $pdf->Line(20, $pdf->GetY(), 90, $pdf->GetY());
 $pdf->Line(120, $pdf->GetY(), 190, $pdf->GetY());
@@ -241,69 +357,70 @@ $pdf->SetFont('Arial', 'B', 8);
 $pdf->Cell(80, 4, 'FIRMA DEL CLIENTE', 0, 0, 'C');
 $pdf->Cell(20, 4, '', 0, 0);
 $pdf->Cell(80, 4, 'FIRMA DEL VENDEDOR', 0, 1, 'C');
-
+$pdf->SetFont('Arial', '', 7);
+$pdf->Cell(80, 4, utf8_decode($v['nombre_titular']), 0, 0, 'C');
+$pdf->Cell(20, 4, '', 0, 0);
+$pdf->Cell(80, 4, utf8_decode($v['instalador_nombre'] ?: 'BGITAL'), 0, 1, 'C');
 
 // ==========================================================
-// PARTE 2: REPORTE DE CIERRE TÉCNICO (MATERIALES Y FOTOS)
+// PÁGINA 2: REPORTE TÉCNICO (si existe)
 // ==========================================================
-// Se agrega solo si hay materiales o fotos
-$hayMateriales = !empty($v['materiales_utilizados']) && $v['materiales_utilizados'] != '[]';
+$hayMaterialesTecnico = !empty($v['materiales_tecnicos']) && $v['materiales_tecnicos'] != '[]';
 $hayFotos = !empty($v['evidencia_fotos']) && $v['evidencia_fotos'] != '[]';
+$hayNotasTecnico = !empty($v['notas_tecnico']);
 
-if ($hayMateriales || $hayFotos) {
+if ($hayMaterialesTecnico || $hayFotos || $hayNotasTecnico) {
     $pdf->AddPage();
     
-    // CABECERA REPORTE TÉCNICO
     $pdf->SetFont('Arial', 'B', 14);
     $pdf->SetTextColor(0, 51, 102);
     $pdf->Cell(0, 10, utf8_decode('REPORTE TÉCNICO DE INSTALACIÓN'), 0, 1, 'C');
     $pdf->SetTextColor(0);
     
     $pdf->SetFont('Arial', '', 10);
-    $fecha_cierre = $v['fecha_completada'] ? date('d/m/Y H:i', strtotime($v['fecha_completada'])) : 'N/A';
+    $fecha_cierre = $v['fecha_completada'] ? date('d/m/Y H:i', strtotime($v['fecha_completada'])) : 'Pendiente';
     $pdf->Cell(0, 6, utf8_decode('Fecha de Cierre: ' . $fecha_cierre), 0, 1, 'C');
+    $pdf->Ln(3);
     
     // DATOS DEL TÉCNICO
-    if($v['instalador_nombre']) {
-        $pdf->Ln(5);
-        $pdf->SetFillColor(240, 240, 240);
-        $pdf->SetFont('Arial', 'B', 10);
-        $pdf->Cell(0, 8, utf8_decode('  TÉCNICO RESPONSABLE'), 0, 1, 'L', true);
-        $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(0, 8, utf8_decode('  Nombre: ' . $v['instalador_nombre']), 0, 1, 'L');
-    }
+    $pdf->SetFillColor(240, 240, 240);
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(0, 8, utf8_decode('  TÉCNICO RESPONSABLE'), 0, 1, 'L', true);
+    $pdf->SetFont('Arial', '', 9);
+    $pdf->InfoRow('  Nombre:', $v['instalador_nombre']);
+    $pdf->InfoRow('  Contacto:', $v['instalador_numero']);
+    $pdf->Ln(3);
 
-    // MATERIALES
-    if ($hayMateriales) {
-        $pdf->SectionTitle('Materiales Utilizados');
+    // MATERIALES REALES UTILIZADOS
+    if ($hayMaterialesTecnico) {
+        $pdf->SectionTitle('Materiales Utilizados (Reporte Real del Técnico)');
         
-        $materiales = json_decode($v['materiales_utilizados'], true);
+        $materiales = json_decode($v['materiales_tecnicos'], true);
         
-        // Cabecera
         $pdf->SetFillColor(0, 51, 102);
         $pdf->SetTextColor(255);
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(140, 7, utf8_decode('DESCRIPCIÓN / MATERIAL'), 1, 0, 'L', true);
+        $pdf->Cell(140, 7, utf8_decode('DESCRIPCIÓN DEL MATERIAL'), 1, 0, 'L', true);
         $pdf->Cell(50, 7, utf8_decode('CANTIDAD'), 1, 1, 'C', true);
         $pdf->SetTextColor(0);
         $pdf->SetFont('Arial', '', 9);
-        $pdf->Ln();
 
         foreach ($materiales as $mat) {
-            $nombre = is_array($mat) ? ($mat['material'] ?? 'N/A') : 'Material';
+            $nombre = is_array($mat) ? ($mat['material'] ?? 'N/A') : $mat;
             $cant = is_array($mat) ? ($mat['cantidad'] ?? '1') : '1';
             
             $pdf->Cell(140, 6, utf8_decode($nombre), 1);
             $pdf->Cell(50, 6, $cant, 1, 1, 'C');
-            $pdf->Ln();
         }
+        $pdf->Ln(5);
     }
 
-    // NOTAS TÉCNICAS
-    if($v['notas_tecnico']) {
-        $pdf->SectionTitle('Notas del Técnico');
+    // NOTAS DEL TÉCNICO
+    if($hayNotasTecnico) {
+        $pdf->SectionTitle('Notas y Observaciones del Técnico');
         $pdf->SetFont('Arial', '', 9);
         $pdf->MultiCell(0, 5, utf8_decode($v['notas_tecnico']), 1, 'L');
+        $pdf->Ln(5);
     }
 
     // EVIDENCIA FOTOGRÁFICA
@@ -322,7 +439,6 @@ if ($hayMateriales || $hayFotos) {
             $ruta_img = '../assets/evidencias/' . $foto;
             
             if (file_exists($ruta_img)) {
-                // Control salto de página si la imagen se sale
                 if ($y_start + $img_height > 260) {
                     $pdf->AddPage();
                     $y_start = 20;
@@ -330,28 +446,25 @@ if ($hayMateriales || $hayFotos) {
                     $count = 0;
                 }
 
-                // Control salto de línea (3 fotos por fila)
                 if ($count > 0 && $count % 3 == 0) {
                     $y_start += $img_height + $margin;
                     $x_start = 15;
                 }
                 
                 $pdf->Image($ruta_img, $x_start, $y_start, $img_width, $img_height);
-                $pdf->Rect($x_start, $y_start, $img_width, $img_height); // Marco
+                $pdf->Rect($x_start, $y_start, $img_width, $img_height);
                 
                 $x_start += $img_width + $margin;
                 $count++;
             }
         }
-        // Mover el cursor abajo de las imágenes para lo que siga
         $pdf->SetY($y_start + $img_height + 10);
     }
     
     // FIRMA DE CONFORMIDAD FINAL
-    // Asegurar que la firma no quede cortada entre páginas
     if($pdf->GetY() > 240) $pdf->AddPage();
     
-    $pdf->SetY(-40);
+    $pdf->SetY(-45);
     $pdf->SetDrawColor(0);
     $pdf->Line(60, $pdf->GetY(), 150, $pdf->GetY());
     $pdf->Ln(2);
@@ -359,6 +472,7 @@ if ($hayMateriales || $hayFotos) {
     $pdf->Cell(0, 4, utf8_decode('FIRMA DE RECIBIDO / CLIENTE'), 0, 1, 'C');
     $pdf->SetFont('Arial', '', 8);
     $pdf->Cell(0, 4, utf8_decode('Acepto la instalación y los equipos en custodia'), 0, 1, 'C');
+    $pdf->Cell(0, 4, utf8_decode($v['nombre_titular']), 0, 1, 'C');
 }
 
 $pdf->Output('I', 'Orden_' . $v['folio'] . '.pdf');

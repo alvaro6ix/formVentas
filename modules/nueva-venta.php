@@ -1,4 +1,16 @@
-<?php include '../includes/header.php'; ?>
+<?php 
+include '../includes/header.php'; 
+require_once '../config/database.php'; // Necesario para cargar los planes
+
+// CONSULTA DE PLANES ACTIVOS
+try {
+    $db = (new Database())->getConnection();
+    $stmtPlanes = $db->query("SELECT * FROM planes_internet WHERE activo = 1 ORDER BY precio ASC");
+    $planes = $stmtPlanes->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $planes = []; // Fallback por si hay error
+}
+?>
 
 <div class="card">
     <h2 style="color: var(--primary-dark); margin-bottom: 20px;">
@@ -7,7 +19,6 @@
     
     <form id="formVenta" action="../api/save-venta.php" method="POST">
         
-        <!-- SECCIÓN 1: DATOS DEL SERVICIO -->
         <div class="section-title"><i class="fas fa-info-circle"></i> Datos del Servicio</div>
         <div class="form-grid">
             <div class="form-group">
@@ -37,7 +48,6 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2: TITULAR Y UBICACIÓN -->
         <div class="section-title"><i class="fas fa-user"></i> Datos del Titular</div>
         <div class="form-group">
             <label class="form-label">Nombre Completo del Titular</label>
@@ -54,7 +64,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Estado</label>
-                <input type="text" name="estado" id="estado" class="form-control" readonly style="background: var(--gray-100);">
+                <input type="text" name="estado" id="estado" class="form-control" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Municipio</label>
@@ -120,17 +130,21 @@
             <textarea name="referencias" class="form-control" rows="3" placeholder="Puntos de referencia para llegar al domicilio"></textarea>
         </div>
 
-        <!-- SECCIÓN 3: SERVICIO CONTRATADO -->
         <div class="section-title"><i class="fas fa-tv"></i> Servicio Contratado</div>
         <div class="form-grid">
             <div class="form-group">
                 <label class="form-label">Paquete Contratado</label>
                 <select name="paquete_contratado" class="form-control" required>
-                    <option value="Internet 50MB">Internet 50MB</option>
-                    <option value="Internet 100MB">Internet 100MB</option>
-                    <option value="Internet 200MB">Internet 200MB</option>
-                    <option value="Internet 200MB + TV">Internet 200MB + TV</option>
-                    <option value="Corporativo Simétrico">Corporativo Simétrico</option>
+                    <option value="">Seleccione un plan...</option>
+                    <?php if(empty($planes)): ?>
+                        <option value="Internet 50MB">Internet 50MB (Default)</option>
+                    <?php else: ?>
+                        <?php foreach($planes as $plan): ?>
+                            <option value="<?php echo htmlspecialchars($plan['nombre_plan']); ?>">
+                                <?php echo htmlspecialchars($plan['nombre_plan']); ?> - $<?php echo $plan['precio']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </select>
             </div>
             <div class="form-group">
@@ -165,7 +179,6 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 4: EQUIPOS -->
         <div class="section-title"><i class="fas fa-server"></i> Equipos Instalados</div>
         <div class="form-grid">
             <div class="form-group">
@@ -187,47 +200,46 @@
         </div>
 
         <div class="form-group">
-    <label class="form-label">Materiales Utilizados</label>
-    
-    <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
-        <div style="flex: 2;">
-            <select id="selMaterial" class="form-control">
-                <option value="">Seleccione material...</option>
-                <option value="Cable Fibra Óptica (m)">Cable Fibra Óptica (mts)</option>
-                <option value="Cable UTP (m)">Cable UTP (mts)</option>
-                <option value="Conectores RJ45">Conectores RJ45</option>
-                <option value="Conectores Mecánicos">Conectores Mecánicos</option>
-                <option value="Tensores">Tensores</option>
-                <option value="Grapas">Grapas</option>
-                <option value="Roseta Óptica">Roseta Óptica</option>
-                <option value="Patch Cord">Patch Cord</option>
-                <option value="Fleje">Fleje</option>
-                <option value="Hebillas">Hebillas</option>
-            </select>
-        </div>
-        <div style="flex: 1;">
-            <input type="number" id="cantMaterial" class="form-control" placeholder="Cant." min="1">
-        </div>
-        <button type="button" id="btnAgregarMaterial" class="btn btn-primary" style="height: 42px;">
-            <i class="fas fa-plus"></i>
-        </button>
-    </div>
+            <label class="form-label">Materiales Utilizados</label>
+            
+            <div style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px;">
+                <div style="flex: 2;">
+                    <select id="selMaterial" class="form-control">
+                        <option value="">Seleccione material...</option>
+                        <option value="Cable Fibra Óptica (m)">Cable Fibra Óptica (mts)</option>
+                        <option value="Cable UTP (m)">Cable UTP (mts)</option>
+                        <option value="Conectores RJ45">Conectores RJ45</option>
+                        <option value="Conectores Mecánicos">Conectores Mecánicos</option>
+                        <option value="Tensores">Tensores</option>
+                        <option value="Grapas">Grapas</option>
+                        <option value="Roseta Óptica">Roseta Óptica</option>
+                        <option value="Patch Cord">Patch Cord</option>
+                        <option value="Fleje">Fleje</option>
+                        <option value="Hebillas">Hebillas</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <input type="number" id="cantMaterial" class="form-control" placeholder="Cant." min="1">
+                </div>
+                <button type="button" id="btnAgregarMaterial" class="btn btn-primary" style="height: 42px;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
 
-    <div id="listaMateriales" style="background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 5px; min-height: 50px;">
-        <p style="color: #999; text-align: center; margin: 0; font-size: 0.9em;" id="msgVacio">
-            No hay materiales agregados
-        </p>
-        </div>
+            <div id="listaMateriales" style="background: #f8f9fa; border: 1px solid #ddd; padding: 10px; border-radius: 5px; min-height: 50px;">
+                <p style="color: #999; text-align: center; margin: 0; font-size: 0.9em;" id="msgVacio">
+                    No hay materiales agregados
+                </p>
+            </div>
 
-    <input type="hidden" name="materiales_utilizados" id="inputMaterialesJSON">
-</div>
+            <input type="hidden" name="materiales_utilizados" id="inputMaterialesJSON">
+        </div>
 
         <div class="form-group">
             <label class="form-label">Notas de Instalación</label>
             <textarea name="notas_instalacion" class="form-control" rows="3" placeholder="Observaciones durante la instalación"></textarea>
         </div>
 
-        <!-- SECCIÓN 5: INSTALADOR -->
         <div class="section-title"><i class="fas fa-user-cog"></i> Datos del Instalador</div>
         <div class="form-grid">
             <div class="form-group">
@@ -240,7 +252,6 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 6: EVALUACIÓN -->
         <div class="section-title"><i class="fas fa-clipboard-check"></i> Evaluación del Servicio</div>
         <div class="form-grid">
             <div class="form-group">
@@ -289,10 +300,11 @@
     </form>
 </div>
 
-<script src="../assets/js/cp-autocomplete.js?v=5000"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="../assets/js/cp-autocomplete.js?v=<?php echo time(); ?>"></script>
 <script>
 // ==========================================
-// 1. LÓGICA DE MATERIALES (Nueva)
+// 1. LÓGICA DE MATERIALES
 // ==========================================
 const materialesList = [];
 const selMaterial = document.getElementById('selMaterial');
@@ -313,13 +325,9 @@ if(btnAgregar){
             return;
         }
 
-        // Agregar al array
         materialesList.push({ material: material, cantidad: cantidad });
-
-        // Actualizar vista y input oculto
         actualizarListaMateriales();
         
-        // Limpiar campos
         selMaterial.value = "";
         cantMaterial.value = "";
         cantMaterial.focus();
@@ -327,16 +335,14 @@ if(btnAgregar){
 }
 
 function actualizarListaMateriales() {
-    // Limpiar lista visual
     listaVisual.innerHTML = '';
 
     if (materialesList.length === 0) {
         listaVisual.appendChild(msgVacio);
         msgVacio.style.display = 'block';
     } else {
-        msgVacio.style.display = 'none'; // Aseguramos ocultar el mensaje
+        msgVacio.style.display = 'none';
         
-        // Renderizar items
         materialesList.forEach((item, index) => {
             const div = document.createElement('div');
             div.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 1px solid #eee; background: white; margin-bottom: 5px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
@@ -352,22 +358,17 @@ function actualizarListaMateriales() {
             listaVisual.appendChild(div);
         });
     }
-
-    // Actualizar el INPUT HIDDEN con el JSON String
     inputHidden.value = JSON.stringify(materialesList);
 }
 
-// Función global para eliminar (necesaria para el onclick inline)
 window.eliminarMaterial = function(index) {
     materialesList.splice(index, 1);
     actualizarListaMateriales();
 };
 
 // ==========================================
-// 2. LÓGICA DE FORMULARIO (Existente)
+// 2. LÓGICA DE FORMULARIO
 // ==========================================
-
-// Mostrar/ocultar campo "otro tipo de vivienda"
 const selectVivienda = document.querySelector('select[name="tipo_vivienda"]');
 if(selectVivienda){
     selectVivienda.addEventListener('change', function() {
@@ -376,7 +377,6 @@ if(selectVivienda){
     });
 }
 
-// Mostrar/ocultar campo "número de identificación"
 const selectIdent = document.getElementById('tipoIdentificacion');
 if(selectIdent){
     selectIdent.addEventListener('change', function() {
@@ -386,14 +386,12 @@ if(selectIdent){
 }
 
 // ==========================================
-// 3. ENVÍO DEL FORMULARIO (Fetch)
+// 3. ENVÍO DEL FORMULARIO
 // ==========================================
 document.getElementById('formVenta').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
-
-    // Validación extra: Si hay materiales seleccionados pero el input hidden está vacío (caso raro)
     if(materialesList.length > 0 && inputHidden.value === "") {
         inputHidden.value = JSON.stringify(materialesList);
     }
@@ -405,10 +403,7 @@ document.getElementById('formVenta').addEventListener('submit', function(e) {
         didOpen: () => { Swal.showLoading() }
     });
 
-    fetch('../api/save-venta.php', {
-        method: 'POST',
-        body: formData
-    })
+    fetch('../api/save-venta.php', { method: 'POST', body: formData })
     .then(res => res.json())
     .then(data => {
         if(data.success) {

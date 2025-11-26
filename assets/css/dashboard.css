@@ -512,3 +512,38 @@ select option {
     overflow-y: auto;
     border: 1px solid #e5e7eb;
 }
+/* FORZAR VISIBILIDAD EN SELECTS */
+select, .form-select, .form-control option {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    opacity: 1 !important;
+}
+
+/* Asegurar que las opciones dentro del select sean negras */
+option {
+    color: #000 !important;
+    background: #fff !important;
+}
+/* --- FIX URGENTE: SELECTORES LEGIBLES --- */
+select.form-select, select.form-control {
+    color: #000000 !important;     /* Texto negro forzado */
+    background-color: #ffffff !important; /* Fondo blanco */
+    border: 1px solid #ced4da !important;
+    font-weight: 600;
+    opacity: 1 !important;
+}
+select option {
+    color: #000000 !important;
+    background: #ffffff !important;
+    padding: 10px;
+}
+
+/* --- MODAL CENTRADO Y VISIBLE --- */
+.modal {
+    background-color: rgba(0,0,0,0.5); /* Fondo oscuro transparente */
+    z-index: 1050 !important; /* Por encima de todo */
+}
+.modal-content {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    border: none;
+}
