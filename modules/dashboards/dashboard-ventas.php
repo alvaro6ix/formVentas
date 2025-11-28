@@ -52,7 +52,7 @@ $misVentasTotal = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                     <i class="fas fa-calendar-check"></i>
                 </div>
             </div>
-            <div>
+             <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='ver-ventas.php'">
                 <div class="stat-number"><?php echo $misVentasMes; ?></div>
                 <div class="stat-label">Mis Ventas del Mes</div>
             </div>

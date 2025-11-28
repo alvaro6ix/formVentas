@@ -20,7 +20,7 @@
         <div class="mt-2 text-success small"><i class="fas fa-arrow-up"></i> <span id="txt_hoy_vs_ayer">Analizando...</span></div>
     </div>
 
-    <div class="stat-card">
+    <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='ver-ventas.php'">
         <div class="d-flex justify-content-between align-items-start">
             <div>
                 <div class="stat-label text-muted">Ventas del Mes</div>
@@ -42,7 +42,7 @@
         <div class="mt-2 text-warning small">Requieren atención</div>
     </div>
 
-    <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='gestionar-usuarios.php'">
+    <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='admin/gestionar-usuarios.php'">
         <div class="d-flex justify-content-between align-items-start">
             <div>
                 <div class="stat-label text-muted">Gestión Usuarios</div>

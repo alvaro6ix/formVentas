@@ -2,7 +2,7 @@
 session_start();
 require_once '../config/database.php';
 
-// Si ya está logueado, redirigir
+// ... (tu código PHP permanece igual) ...
 if(isset($_SESSION['user_id'])){ 
     header("Location: dashboard.php"); 
     exit(); 
@@ -18,7 +18,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $usuario = trim($_POST['usuario']);
     $password = trim($_POST['password']);
     
-    // Consulta corregida con los datos que necesitamos
     $stmt = $db->prepare("SELECT id, usuario, password, nombre, apellido_paterno, rol_id, activo, bloqueado, intentos_fallidos, avatar FROM usuarios WHERE usuario = :usu OR email = :mail");
     $stmt->execute([':usu' => $usuario, ':mail' => $usuario]);
     
@@ -31,7 +30,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Usuario inactivo. Contacta al administrador.";
         } elseif (password_verify($password, $row['password'])) {
             
-            // LOGIN EXITOSO
             $stmt = $db->prepare("UPDATE usuarios SET intentos_fallidos = 0, ultimo_acceso = NOW() WHERE id = ?");
             $stmt->execute([$row['id']]);
             
@@ -45,7 +43,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             exit();
 
         } else {
-            // LOGIN FALLIDO
             $intentos = $row['intentos_fallidos'] + 1;
             $bloqueado = ($intentos >= 5) ? 1 : 0;
             $stmt = $db->prepare("UPDATE usuarios SET intentos_fallidos = ?, bloqueado = ? WHERE id = ?");
@@ -67,24 +64,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bdigital | Login</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             overflow: hidden;
-            background: #020617; /* Fondo muy oscuro (casi negro azulado) */
+            background: #020617;
         }
 
-        /* CONTENEDOR PRINCIPAL */
         .login-container { display: flex; height: 100vh; position: relative; }
 
-        /* LADO IZQUIERDO - FORMULARIO */
         .login-left {
             width: 45%;
-            background: #ffffff; /* Blanco limpio */
+            background: #d6d8ddff;
             display: flex; flex-direction: column; justify-content: center;
             padding: 60px; position: relative; z-index: 10;
-            box-shadow: 5px 0 30px rgba(0,0,0,0.15); /* Sombra gris elegante */
+            box-shadow: 5px 0 30px rgba(0,0,0,0.15);
         }
 
         .logo-section {
@@ -92,7 +88,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             display: flex; align-items: center; gap: 12px;
         }
 
-        /* Logo como imagen */
         .logo-img {
             height: 50px; width: auto; object-fit: contain;
         }
@@ -101,12 +96,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .login-title { 
             font-size: 36px; font-weight: 800; 
-            color: #0f172a; /* Gris muy oscuro */
+            color: #0f172a;
             margin-bottom: 8px; 
         }
 
         .login-subtitle { 
-            color: #64748b; /* Gris medio */
+            color: #64748b;
             font-size: 15px; margin-bottom: 40px; 
         }
 
@@ -114,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .form-label { 
             display: block; font-size: 14px; font-weight: 600; 
-            color: #334155; /* Gris azulado oscuro */
+            color: #334155;
             margin-bottom: 8px; 
         }
 
@@ -122,14 +117,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .form-input {
             width: 100%; padding: 14px 16px;
-            border: 2px solid #e2e8f0; /* Borde gris claro */
+            border: 2px solid #e2e8f0;
             border-radius: 10px;
             font-size: 15px; transition: all 0.3s ease; background: #f8fafc;
         }
 
         .form-input:focus { 
             outline: none; 
-            border-color: #2563eb; /* Azul Fuerte (Primary) */
+            border-color: #2563eb;
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); 
             background: white;
         }
@@ -148,7 +143,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         .btn-login {
             width: 100%; padding: 16px;
-            /* Gradiente Azul: De Azul Fuerte a Azul Claro */
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             color: white; border: none; border-radius: 10px;
             font-size: 16px; font-weight: 600; cursor: pointer;
@@ -172,82 +166,137 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* LADO DERECHO - MAPA FIBRA ÓPTICA (AZUL) */
+        /* LADO DERECHO - MAPA SUPER DETALLADO */
         .login-right {
             width: 55%; 
-            background: #0f172a; /* Azul noche muy oscuro */
+            background: #0a0f1c;
             position: relative; overflow: hidden;
         }
 
-        #fiberCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #tolucaMap { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
+        }
 
-        .fiber-overlay {
+        .map-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            /* Gradiente suave sobre el canvas */
-            background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(15, 23, 42, 0.8) 100%);
+            background: radial-gradient(circle at 20% 30%, rgba(10, 15, 28, 0.3) 0%, rgba(10, 15, 28, 0.8) 100%);
             pointer-events: none; z-index: 2;
         }
 
-        .animated-text {
+        /* MARCA DE AGUA BGITAL */
+        .watermark {
+            position: absolute;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.15;
+            font-size: 180px;
+            font-weight: 900;
+            color: #3b82f6;
+            font-family: 'Inter', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 8px;
+            transform: rotate(-25deg);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        .watermark-1 {
+            top: 20%;
+            left: 10%;
+        }
+
+        .watermark-2 {
+            top: 60%;
+            left: 50%;
+            transform: rotate(15deg);
+        }
+
+        .watermark-3 {
+            top: 80%;
+            left: 20%;
+            transform: rotate(-10deg);
+        }
+
+        .central-marker {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 3; text-align: center;
+            z-index: 4; text-align: center;
         }
 
-        .brand-name {
-            font-size: 80px; font-weight: 900;
-            /* Gradiente de Texto: Azul Fuerte a Cyan */
-            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #22d3ee 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; 
-            animation: glow 3s ease-in-out infinite;
-            text-shadow: 0 0 30px rgba(59, 130, 246, 0.3); 
-            letter-spacing: -2px;
+        .marker-pin {
+            width: 20px; height: 20px; background: #22d3ee;
+            border: 3px solid white; border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.4), 0 0 20px rgba(34, 211, 238, 0.8);
+            animation: techPulse 2s infinite;
         }
 
-        @keyframes glow {
-            0%, 100% { filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4)); }
-            50% { filter: drop-shadow(0 0 30px rgba(34, 211, 238, 0.6)); }
+        @keyframes techPulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.7), 0 0 0 0 rgba(34, 211, 238, 0.4); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(34, 211, 238, 0), 0 0 0 20px rgba(34, 211, 238, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 211, 238, 0), 0 0 0 0 rgba(34, 211, 238, 0); }
         }
 
-        .brand-subtitle {
-            color: #93c5fd; /* Azul muy claro */
-            font-size: 18px; margin-top: 10px; letter-spacing: 4px;
-            text-transform: uppercase; animation: fadeInOut 2s ease-in-out infinite;
+        .marker-label {
+            background: linear-gradient(135deg, #22d3ee, #3b82f6); color: white; padding: 6px 12px;
+            border-radius: 15px; font-size: 11px; font-weight: 700;
+            margin-top: 10px; white-space: nowrap; text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        @keyframes fadeInOut { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        .metro-station {
+            position: absolute; z-index: 3; text-align: center;
+        }
+
+        .metro-icon {
+            width: 16px; height: 16px; background: #dc2626;
+            border: 2px solid white; border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+        }
+
+        .metro-label {
+            background: #dc2626; color: white; padding: 3px 8px;
+            border-radius: 10px; font-size: 9px; font-weight: 600;
+            margin-top: 5px; white-space: nowrap;
+        }
 
         /* Stats decorativos */
         .stats-overlay {
-            position: absolute; bottom: 40px; left: 40px; right: 40px;
-            z-index: 3; display: flex; gap: 30px;
+            position: absolute; bottom: 30px; left: 30px; right: 30px;
+            z-index: 3; display: flex; gap: 15px;
         }
 
         .stat-item {
-            background: rgba(30, 41, 59, 0.4); /* Fondo oscuro translúcido */
-            backdrop-filter: blur(10px);
-            padding: 20px; border-radius: 12px; 
-            border: 1px solid rgba(59, 130, 246, 0.2); /* Borde azul sutil */
-            flex: 1;
-            transition: transform 0.3s;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            padding: 12px; border-radius: 10px; 
+            border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            flex: 1; text-align: center;
+            transition: all 0.3s ease;
         }
-        .stat-item:hover { transform: translateY(-5px); border-color: rgba(59, 130, 246, 0.5); }
+        .stat-item:hover { 
+            transform: translateY(-3px); 
+            border-color: rgba(34, 211, 238, 0.6);
+            box-shadow: 0 6px 25px rgba(34, 211, 238, 0.2);
+        }
 
         .stat-value { 
-            font-size: 28px; font-weight: 700; 
-            color: #60a5fa; /* Azul brillante */
-            margin-bottom: 5px; 
+            font-size: 20px; font-weight: 800; 
+            background: linear-gradient(135deg, #60a5fa, #22d3ee);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px; 
         }
 
         .stat-label { 
-            color: #cbd5e1; /* Gris claro */
-            font-size: 13px; text-transform: uppercase; letter-spacing: 1px; 
+            color: #cbd5e1;
+            font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;
         }
 
         /* RESPONSIVE */
         @media (max-width: 1024px) {
             .login-left { width: 50%; padding: 40px; }
             .login-right { width: 50%; }
-            .brand-name { font-size: 60px; }
+            .watermark { font-size: 120px; }
         }
         @media (max-width: 768px) {
             .login-container { flex-direction: column; }
@@ -307,12 +356,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
 
         <div class="login-right">
-            <canvas id="fiberCanvas"></canvas>
-            <div class="fiber-overlay"></div>
+            <canvas id="tolucaMap"></canvas>
+            <div class="map-overlay"></div>
             
-            <div class="animated-text">
-                <div class="brand-name">BGITAL</div>
-                <div class="brand-subtitle">Red de Fibra Óptica</div>
+            <!-- MARCAS DE AGUA BGITAL REPETIDAS -->
+            <div class="watermark watermark-1">BGITAL</div>
+            <div class="watermark watermark-2">BGITAL</div>
+            <div class="watermark watermark-3">BGITAL</div>
+
+            <div class="central-marker">
+                <div class="marker-pin"></div>
+                <div class="marker-label">Central BGITAL</div>
+            </div>
+
+            <!-- Estaciones del Metro -->
+            <div class="metro-station" style="top: 35%; left: 45%;">
+                <div class="metro-icon"></div>
+                <div class="metro-label">Toluca</div>
+            </div>
+            <div class="metro-station" style="top: 40%; left: 48%;">
+                <div class="metro-icon"></div>
+                <div class="metro-label">Metepec</div>
+            </div>
+            <div class="metro-station" style="top: 32%; left: 42%;">
+                <div class="metro-icon"></div>
+                <div class="metro-label">Lerma</div>
             </div>
 
             <div class="stats-overlay">
@@ -326,7 +394,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 <div class="stat-item">
                     <div class="stat-value" id="stat3">0</div>
-                    <div class="stat-label">Clientes</div>
+                    <div class="stat-label">Clientes Conectados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="stat4">0</div>
+                    <div class="stat-label">Zonas Cubiertas</div>
                 </div>
             </div>
         </div>
@@ -334,126 +406,388 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     <script>
         // ==========================================
-        // ANIMACIÓN DE FIBRA ÓPTICA (VERSIÓN AZUL)
+        // MAPA ULTRA DETALLADO - TOLUCA + METEPEC
         // ==========================================
-        const canvas = document.getElementById('fiberCanvas');
+        const canvas = document.getElementById('tolucaMap');
         const ctx = canvas.getContext('2d');
 
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-
-        window.addEventListener('resize', () => {
+        function resizeCanvas() {
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
-        });
-
-        const nodes = [];
-        const particles = [];
-
-        // Crear nodos
-        for(let i = 0; i < 25; i++) {
-            nodes.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.6,
-                vy: (Math.random() - 0.5) * 0.6,
-                radius: Math.random() * 2 + 1.5
-            });
         }
 
-        class Particle {
-            constructor(start, end) {
-                this.start = start;
-                this.end = end;
-                this.x = start.x;
-                this.y = start.y;
-                this.progress = 0;
-                this.speed = 0.01 + Math.random() * 0.015;
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Calles principales de Toluca y Metepec (más de 30 calles)
+        const callesToluca = [
+            // AVENIDAS PRINCIPALES (Toluca)
+            { name: "PASEO TOLLOCAN", points: [{x: 0.1, y: 0.5}, {x: 0.9, y: 0.5}], type: "avenida_principal", width: 10, color: "#3b82f6" },
+            { name: "BLVD. SOLIDARIDAD", points: [{x: 0.15, y: 0.35}, {x: 0.85, y: 0.35}], type: "avenida_principal", width: 8, color: "#3b82f6" },
+            { name: "AV. HIDALGO", points: [{x: 0.4, y: 0.1}, {x: 0.4, y: 0.9}], type: "avenida_principal", width: 8, color: "#3b82f6" },
+            { name: "AV. MORELOS", points: [{x: 0.6, y: 0.1}, {x: 0.6, y: 0.9}], type: "avenida_principal", width: 8, color: "#3b82f6" },
+            { name: "PERIFÉRICO", points: [{x: 0.1, y: 0.2}, {x: 0.3, y: 0.1}, {x: 0.7, y: 0.1}, {x: 0.9, y: 0.2}, {x: 0.9, y: 0.8}, {x: 0.7, y: 0.9}, {x: 0.3, y: 0.9}, {x: 0.1, y: 0.8}, {x: 0.1, y: 0.2}], type: "periferico", width: 9, color: "#1d4ed8" },
+            
+            // AVENIDAS SECUNDARIAS (Toluca)
+            { name: "LÓPEZ MATEOS", points: [{x: 0.3, y: 0.4}, {x: 0.7, y: 0.4}], type: "avenida", width: 6, color: "#60a5fa" },
+            { name: "ALLENDE", points: [{x: 0.3, y: 0.6}, {x: 0.7, y: 0.6}], type: "avenida", width: 6, color: "#60a5fa" },
+            { name: "JUÁREZ", points: [{x: 0.2, y: 0.4}, {x: 0.2, y: 0.6}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "ZARAGOZA", points: [{x: 0.8, y: 0.4}, {x: 0.8, y: 0.6}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "REFORMA", points: [{x: 0.5, y: 0.35}, {x: 0.5, y: 0.65}], type: "avenida", width: 5, color: "#60a5fa" },
+            
+            // CALLES DE METEPEC
+            { name: "AV. ESTADO MÉXICO", points: [{x: 0.25, y: 0.7}, {x: 0.45, y: 0.85}], type: "avenida", width: 6, color: "#60a5fa" },
+            { name: "BLVD. METEPEC", points: [{x: 0.3, y: 0.75}, {x: 0.5, y: 0.8}], type: "avenida", width: 6, color: "#60a5fa" },
+            { name: "AV. LAS TORRES", points: [{x: 0.35, y: 0.7}, {x: 0.35, y: 0.9}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "SAN MATEO", points: [{x: 0.4, y: 0.72}, {x: 0.5, y: 0.78}], type: "calle", width: 4, color: "#93c5fd" },
+            { name: "SAN JERÓNIMO", points: [{x: 0.42, y: 0.75}, {x: 0.52, y: 0.82}], type: "calle", width: 4, color: "#93c5fd" },
+            
+            // CALLES RESIDENCIALES (Toluca Norte)
+            { name: "GALEANA", points: [{x: 0.45, y: 0.25}, {x: 0.55, y: 0.25}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "GUERRERO", points: [{x: 0.45, y: 0.28}, {x: 0.55, y: 0.28}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "MATAMOROS", points: [{x: 0.45, y: 0.31}, {x: 0.55, y: 0.31}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "INDUSTRIA", points: [{x: 0.48, y: 0.2}, {x: 0.48, y: 0.35}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "COMERCIO", points: [{x: 0.52, y: 0.2}, {x: 0.52, y: 0.35}], type: "calle", width: 3, color: "#93c5fd" },
+            
+            // CALLES RESIDENCIALES (Toluca Sur)
+            { name: "OCAMPO", points: [{x: 0.45, y: 0.65}, {x: 0.55, y: 0.65}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "ALDA", points: [{x: 0.45, y: 0.68}, {x: 0.55, y: 0.68}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "5 DE MAYO", points: [{x: 0.45, y: 0.71}, {x: 0.55, y: 0.71}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "16 DE SEPTIEMBRE", points: [{x: 0.48, y: 0.6}, {x: 0.48, y: 0.75}], type: "calle", width: 3, color: "#93c5fd" },
+            { name: "20 DE NOVIEMBRE", points: [{x: 0.52, y: 0.6}, {x: 0.52, y: 0.75}], type: "calle", width: 3, color: "#93c5fd" },
+            
+            // ZONA OESTE (San Buenaventura)
+            { name: "UNIVERSIDAD", points: [{x: 0.65, y: 0.4}, {x: 0.8, y: 0.45}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "TECNOLÓGICO", points: [{x: 0.7, y: 0.35}, {x: 0.7, y: 0.5}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "CIENTÍFICA", points: [{x: 0.75, y: 0.38}, {x: 0.75, y: 0.52}], type: "calle", width: 3, color: "#93c5fd" },
+            
+            // ZONA ESTE (San Mateo)
+            { name: "AGRÍCOLA", points: [{x: 0.2, y: 0.25}, {x: 0.35, y: 0.3}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "INDUSTRIAL", points: [{x: 0.25, y: 0.2}, {x: 0.25, y: 0.35}], type: "avenida", width: 5, color: "#60a5fa" },
+            { name: "ARTESANAL", points: [{x: 0.3, y: 0.22}, {x: 0.3, y: 0.33}], type: "calle", width: 3, color: "#93c5fd" }
+        ];
+
+        // Línea del Metro
+        const lineaMetro = [
+            { name: "LÍNEA METRO", points: [{x: 0.4, y: 0.15}, {x: 0.45, y: 0.35}, {x: 0.48, y: 0.4}, {x: 0.5, y: 0.45}, {x: 0.52, y: 0.5}, {x: 0.48, y: 0.55}, {x: 0.45, y: 0.6}, {x: 0.42, y: 0.7}], type: "metro", width: 6, color: "#dc2626" }
+        ];
+
+        // Nodos de red
+        const nodosRed = [
+            { x: 0.5, y: 0.5, name: "SANTA ANA", type: "central", desc: "Central BGITAL" },
+            { x: 0.7, y: 0.5, name: "SAN BUENAVENTURA", type: "nodo_principal" },
+            { x: 0.4, y: 0.3, name: "SAN MATEO", type: "nodo_principal" },
+            { x: 0.6, y: 0.3, name: "LA TERESONA", type: "nodo_principal" },
+            { x: 0.4, y: 0.7, name: "SANTIAGUITO", type: "nodo_principal" },
+            { x: 0.6, y: 0.7, name: "LA MERCED", type: "nodo_principal" },
+            { x: 0.2, y: 0.5, name: "TOLLOCAN", type: "nodo_principal" },
+            { x: 0.8, y: 0.5, name: "MORELOS", type: "nodo_principal" },
+            { x: 0.3, y: 0.8, name: "METEPEC CENTRO", type: "nodo_secundario" },
+            { x: 0.75, y: 0.4, name: "UNIVERSIDAD", type: "nodo_secundario" },
+            { x: 0.25, y: 0.25, name: "INDUSTRIAL", type: "nodo_secundario" },
+            { x: 0.45, y: 0.25, name: "NORTE", type: "nodo_secundario" },
+            { x: 0.55, y: 0.25, name: "NORTE 2", type: "nodo_secundario" },
+            { x: 0.45, y: 0.75, name: "SUR", type: "nodo_secundario" },
+            { x: 0.55, y: 0.75, name: "SUR 2", type: "nodo_secundario" }
+        ];
+
+        // Estaciones del Metro
+        const estacionesMetro = [
+            { x: 0.4, y: 0.15, name: "TERMINAL", type: "metro" },
+            { x: 0.45, y: 0.35, name: "SAN MATEO", type: "metro" },
+            { x: 0.48, y: 0.4, name: "CENTRO", type: "metro" },
+            { x: 0.5, y: 0.45, name: "SANTA ANA", type: "metro" },
+            { x: 0.52, y: 0.5, name: "SAN BUENAVENTURA", type: "metro" },
+            { x: 0.48, y: 0.55, name: "LA MERCED", type: "metro" },
+            { x: 0.45, y: 0.6, name: "SANTIAGUITO", type: "metro" },
+            { x: 0.42, y: 0.7, name: "METEPEC", type: "metro" }
+        ];
+
+        // Partículas de fibra óptica
+        const particulasFibra = [];
+
+        class ParticulaFibra {
+            constructor() {
+                this.calle = callesToluca[Math.floor(Math.random() * callesToluca.length)];
+                this.progress = Math.random();
+                this.speed = 0.004 + Math.random() * 0.006;
+                this.size = Math.random() * 2 + 1;
+                this.segmentIndex = Math.floor(Math.random() * (this.calle.points.length - 1));
+                this.hue = Math.random() * 60 + 200; // Azules
+                this.type = Math.random() > 0.7 ? "principal" : "residencial";
             }
 
             update() {
                 this.progress += this.speed;
-                if(this.progress >= 1) {
+                if (this.progress >= 1) {
                     this.progress = 0;
-                    this.start = this.end;
-                    this.end = nodes[Math.floor(Math.random() * nodes.length)];
+                    this.calle = callesToluca[Math.floor(Math.random() * callesToluca.length)];
+                    this.segmentIndex = Math.floor(Math.random() * (this.calle.points.length - 1));
+                    this.type = Math.random() > 0.7 ? "principal" : "residencial";
                 }
-                this.x = this.start.x + (this.end.x - this.start.x) * this.progress;
-                this.y = this.start.y + (this.end.y - this.start.y) * this.progress;
+            }
+
+            getPosition() {
+                const start = this.calle.points[this.segmentIndex];
+                const end = this.calle.points[this.segmentIndex + 1];
+                return {
+                    x: start.x + (end.x - start.x) * this.progress,
+                    y: start.y + (end.y - start.y) * this.progress
+                };
             }
 
             draw() {
-                // PARTÍCULA AZUL BRILLANTE
+                const pos = this.getPosition();
+                const x = pos.x * canvas.width;
+                const y = pos.y * canvas.height;
+
+                // Color según tipo de fibra
+                let color;
+                if (this.type === "principal") {
+                    color = `hsla(${this.hue}, 100%, 65%, 0.9)`;
+                } else {
+                    color = `hsla(${this.hue + 30}, 100%, 75%, 0.7)`;
+                }
+
+                // Partícula de fibra
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(59, 130, 246, ${1 - this.progress})`; // Azul Tailwind-500
+                ctx.arc(x, y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = color;
                 ctx.fill();
+
+                // Efecto de luz tecnológico
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, this.size * 4);
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
                 
-                // ESTELA CYAN
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(34, 211, 238, ${0.2 * (1 - this.progress)})`; // Cyan Tailwind-400
+                ctx.arc(x, y, this.size * 4, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
                 ctx.fill();
             }
         }
 
-        // Crear partículas
-        for(let i = 0; i < 60; i++) {
-            const start = nodes[Math.floor(Math.random() * nodes.length)];
-            const end = nodes[Math.floor(Math.random() * nodes.length)];
-            particles.push(new Particle(start, end));
+        // Crear partículas (muchas más para efecto denso)
+        for (let i = 0; i < 150; i++) {
+            particulasFibra.push(new ParticulaFibra());
         }
 
-        function animate() {
-            // FONDO TRANSPARENTE PARA ESTELA
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.2)'; // Azul noche oscuro
+        // Función para dibujar texto con efecto tecnológico
+        function dibujarTextoConSombra(texto, x, y, color = '#ffffff', fontSize = 10, align = 'center') {
+            ctx.save();
+            ctx.font = `600 ${fontSize}px Inter, Arial, sans-serif`;
+            ctx.textAlign = align;
+            ctx.textBaseline = 'middle';
+            
+            // Sombra tecnológica
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillText(texto, x + 1, y + 1);
+            
+            // Texto principal
+            ctx.fillStyle = color;
+            ctx.fillText(texto, x, y);
+            
+            ctx.restore();
+        }
+
+        function dibujarMapa() {
+            // Fondo tecnológico oscuro
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#0f172a');
+            gradient.addColorStop(0.5, '#1e293b');
+            gradient.addColorStop(1, '#0f172a');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            nodes.forEach(node => {
-                node.x += node.vx;
-                node.y += node.vy;
-
-                if(node.x < 0 || node.x > canvas.width) node.vx *= -1;
-                if(node.y < 0 || node.y > canvas.height) node.vy *= -1;
-
-                // NODO (PUNTO)
+            // Cuadrícula tecnológica sutil
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.1)';
+            ctx.lineWidth = 0.5;
+            for (let x = 0; x < canvas.width; x += 40) {
                 ctx.beginPath();
-                ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#3b82f6'; // Azul
-                ctx.fill();
-            });
-
-            // DIBUJAR CONEXIONES (LÍNEAS AZULES)
-            for(let i = 0; i < nodes.length; i++) {
-                for(let j = i + 1; j < nodes.length; j++) {
-                    const dx = nodes[i].x - nodes[j].x;
-                    const dy = nodes[i].y - nodes[j].y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if(distance < 180) {
-                        ctx.beginPath();
-                        ctx.moveTo(nodes[i].x, nodes[i].y);
-                        ctx.lineTo(nodes[j].x, nodes[j].y);
-                        // Color de línea azulado tenue
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${1 - distance / 180})`; 
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
             }
 
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
+            // Dibujar línea del Metro primero (para que quede detrás)
+            lineaMetro.forEach(linea => {
+                ctx.beginPath();
+                ctx.moveTo(linea.points[0].x * canvas.width, linea.points[0].y * canvas.height);
+                
+                for (let i = 1; i < linea.points.length; i++) {
+                    ctx.lineTo(linea.points[i].x * canvas.width, linea.points[i].y * canvas.height);
+                }
+
+                ctx.strokeStyle = linea.color;
+                ctx.lineWidth = linea.width;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+
+                // Efecto de neón para el metro
+                ctx.strokeStyle = 'rgba(220, 38, 38, 0.3)';
+                ctx.lineWidth = linea.width + 4;
+                ctx.stroke();
             });
 
-            requestAnimationFrame(animate);
+            // Dibujar calles
+            callesToluca.forEach(calle => {
+                ctx.beginPath();
+                ctx.moveTo(calle.points[0].x * canvas.width, calle.points[0].y * canvas.height);
+                
+                for (let i = 1; i < calle.points.length; i++) {
+                    ctx.lineTo(calle.points[i].x * canvas.width, calle.points[i].y * canvas.height);
+                }
+
+                // Estilo según tipo de calle
+                ctx.strokeStyle = calle.color;
+                ctx.lineWidth = calle.width;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+
+                // Efecto de brillo para avenidas principales
+                if (calle.type === "avenida_principal") {
+                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
+                    ctx.lineWidth = calle.width + 4;
+                    ctx.stroke();
+                }
+
+                // Dibujar nombre de la calle
+                if (calle.points.length === 2) {
+                    const start = calle.points[0];
+                    const end = calle.points[1];
+                    const midX = (start.x + end.x) / 2 * canvas.width;
+                    const midY = (start.y + end.y) / 2 * canvas.height;
+                    
+                    ctx.save();
+                    ctx.translate(midX, midY);
+                    
+                    // Calcular ángulo de la calle
+                    const angle = Math.atan2(
+                        end.y * canvas.height - start.y * canvas.height,
+                        end.x * canvas.width - start.x * canvas.width
+                    );
+                    ctx.rotate(angle);
+                    
+                    // Fondo tecnológico para el texto
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+                    ctx.fillRect(-ctx.measureText(calle.name).width/2 - 8, -12, 
+                                ctx.measureText(calle.name).width + 16, 20);
+                    
+                    // Borde tecnológico
+                    ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(-ctx.measureText(calle.name).width/2 - 8, -12, 
+                                  ctx.measureText(calle.name).width + 16, 20);
+                    
+                    // Texto de la calle
+                    dibujarTextoConSombra(calle.name, 0, 0, '#93c5fd', 9);
+                    ctx.restore();
+                }
+            });
+
+            // Dibujar partículas de fibra
+            particulasFibra.forEach(particula => {
+                particula.update();
+                particula.draw();
+            });
+
+            // Dibujar nodos de red
+            nodosRed.forEach(nodo => {
+                const x = nodo.x * canvas.width;
+                const y = nodo.y * canvas.height;
+
+                if (nodo.type === "central") {
+                    // Nodo central ya tiene marcador especial
+                } else if (nodo.type === "nodo_principal") {
+                    // Nodos principales
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#10b981';
+                    ctx.fill();
+
+                    // Efecto de pulso
+                    ctx.beginPath();
+                    ctx.arc(x, y, 12, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Nombre del nodo
+                    dibujarTextoConSombra(nodo.name, x + 15, y - 12, '#10b981', 8);
+                } else {
+                    // Nodos secundarios
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#8b5cf6';
+                    ctx.fill();
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(139, 92, 246, 0.3)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+            });
+
+            // Dibujar estaciones del Metro
+            estacionesMetro.forEach(estacion => {
+                const x = estacion.x * canvas.width;
+                const y = estacion.y * canvas.height;
+
+                // Icono de estación
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#dc2626';
+                ctx.fill();
+
+                // Borde blanco
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Nombre de estación
+                dibujarTextoConSombra(estacion.name, x, y + 15, '#fca5a5', 8);
+            });
+
+            // Efectos de conexión entre nodos (fibra óptica)
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            
+            nodosRed.forEach((nodo, index) => {
+                if (nodo.type === "central") {
+                    // Conectar nodo central con principales
+                    nodosRed.forEach(otherNodo => {
+                        if (otherNodo.type === "nodo_principal") {
+                            ctx.beginPath();
+                            ctx.moveTo(nodo.x * canvas.width, nodo.y * canvas.height);
+                            ctx.lineTo(otherNodo.x * canvas.width, otherNodo.y * canvas.height);
+                            ctx.stroke();
+                        }
+                    });
+                }
+            });
+            ctx.setLineDash([]);
         }
 
-        animate();
+        function animar() {
+            dibujarMapa();
+            requestAnimationFrame(animar);
+        }
+
+        animar();
 
         // ==========================================
-        // ANIMACIÓN DE STATS (NÚMEROS)
+        // ANIMACIÓN DE STATS
         // ==========================================
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
@@ -470,10 +804,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
         setTimeout(() => {
-            animateValue("stat1", 0, 847, 2000);
-            animateValue("stat2", 0, 1250, 2000);
-            animateValue("stat3", 0, 3429, 2000);
-        }, 500);
+            animateValue("stat1", 0, 127, 2000);
+            animateValue("stat2", 0, 428, 2000);
+            animateValue("stat3", 0, 2157, 2000);
+            animateValue("stat4", 0, 28, 2000);
+        }, 1000);
 
         // MOSTRAR/OCULTAR PASSWORD
         const togglePassword = document.getElementById('togglePassword');

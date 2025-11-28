@@ -99,35 +99,70 @@ $avatar_error = $ruta_assets . 'assets/img/avatars/default.png';
 
             <?php switch($rol_usuario): 
                 case 1: // ADMIN ?>
-                    <div class="menu-section-label text-warning">Administración</div>
-                    <a href="<?php echo $ruta_admin; ?>gestionar-usuarios.php" class="nav-link"><i class="fas fa-users-cog"></i> Usuarios</a>
-                    <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link"><i class="fas fa-list-alt"></i> Todas las Ventas</a>
-                    <a href="<?php echo $ruta_modules; ?>configuracion.php" class="nav-link"><i class="fas fa-cogs"></i> Configuración</a>
-                    <a href="<?php echo $ruta_modules; ?>logs.php" class="nav-link"><i class="fas fa-shield-alt"></i> Logs Auditoría</a>
+                   <div class="menu-section-label text-warning">Administración</div>
+        <a href="<?php echo $ruta_admin; ?>gestionar-usuarios.php" class="nav-link">
+            <i class="fas fa-users-cog"></i> Usuarios
+        </a>
+        <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link">
+            <i class="fas fa-list-alt"></i> Ver Todas las Ventas
+        </a>
+        <a href="<?php echo $ruta_modules; ?>tickets.php" class="nav-link">
+            <i class="fas fa-headset"></i> Ver Tickets
+        </a>
+        <a href="<?php echo $ruta_modules; ?>inventario.php" class="nav-link">
+            <i class="fas fa-boxes"></i> Ver Inventario
+        </a>
+        <a href="<?php echo $ruta_modules; ?>configuracion.php" class="nav-link">
+            <i class="fas fa-cogs"></i> Configuración
+        </a>
+        <a href="<?php echo $ruta_modules; ?>logs.php" class="nav-link">
+            <i class="fas fa-shield-alt"></i> Logs de Auditoría
+        </a>
                 <?php break; ?>
 
                 <?php case 2: // VENTAS ?>
                     <div class="menu-section-label text-info">Ventas</div>
-                    <a href="<?php echo $ruta_modules; ?>nueva-venta.php" class="nav-link"><i class="fas fa-plus-circle"></i> Nueva Venta</a>
-                    <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link"><i class="fas fa-file-invoice-dollar"></i> Mis Ventas</a>
-                    <a href="#" class="nav-link"><i class="fas fa-users"></i> Clientes</a>
-                    <a href="#" class="nav-link"><i class="fas fa-clipboard-list"></i> Mis Reportes</a>
+        <a href="<?php echo $ruta_modules; ?>nueva-venta.php" class="nav-link">
+            <i class="fas fa-plus-circle"></i> Nueva Venta (Cliente)
+        </a>
+        <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link">
+            <i class="fas fa-file-invoice-dollar"></i> Mis Ventas
+        </a>
+        <a href="<?php echo $ruta_modules; ?>historial.php" class="nav-link">
+            <i class="fas fa-clipboard-list"></i> Historial
+        </a>
                 <?php break; ?>
 
-                <?php case 3: // DESPACHO ?>
-                    <div class="menu-section-label text-success">Logística</div>
-                    <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link"><i class="fas fa-bell"></i> Órdenes Pendientes</a>
-                    <a href="#" class="nav-link"><i class="fas fa-map-marked-alt"></i> Asignar Técnicos</a>
-                    <a href="#" class="nav-link"><i class="fas fa-boxes"></i> Inventario</a>
-                    <a href="#" class="nav-link"><i class="fas fa-route"></i> Rutas</a>
-                <?php break; ?>
+               <?php case 3: // DESPACHO ?>
+                <div class="menu-section-label text-success">Gestión y Soporte</div>
+        <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link">
+            <i class="fas fa-bell"></i> Órdenes de Instalación
+        </a>
+        <a href="<?php echo $ruta_modules; ?>tickets.php" class="nav-link">
+            <i class="fas fa-headset"></i> Tickets de Soporte
+        </a>
+        <a href="<?php echo $ruta_modules; ?>inventario.php" class="nav-link">
+            <i class="fas fa-boxes"></i> Inventario
+        </a>
+        <a href="<?php echo $ruta_modules; ?>ver-ventas.php" class="nav-link">
+            <i class="fas fa-users"></i> Ver Clientes (Ventas)
+        </a>
+<?php break; ?>
 
                 <?php case 4: // TÉCNICO ?>
-                    <div class="menu-section-label text-danger">Campo</div>
-                    <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link"><i class="fas fa-tasks"></i> Mis Asignaciones</a>
-                    <a href="#" class="nav-link"><i class="fas fa-calendar-check"></i> Instalaciones Hoy</a>
-                    <a href="#" class="nav-link"><i class="fas fa-tools"></i> Materiales</a>
-                    <a href="#" class="nav-link"><i class="fas fa-camera"></i> Reportar Trabajo</a>
+                   <div class="menu-section-label text-danger">Campo</div>
+        <a href="<?php echo $ruta_modules; ?>dashboard.php" class="nav-link">
+            <i class="fas fa-tasks"></i> Mis Asignaciones
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-calendar-check"></i> Instalaciones Hoy
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-tools"></i> Materiales
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-camera"></i> Reportar Trabajo
+        </a>
                 <?php break; ?>
 
             <?php endswitch; ?>
